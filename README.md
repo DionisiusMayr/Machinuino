@@ -1,31 +1,32 @@
 # Machinuino
-Gerador de código para plataformas embarcadas
+Code generator for microcontrollers
 
-## Proposta
-Criar uma linguagem de representação e descrição de Máquinas de Moore e um compilador para gerar código para plataformas embarcadas a partir de tal representação.
+## Project
+Develop a representation and description language for Moore Machines and a Compiler to generate code for microcontrollers from this representation.
 
-### Plataformas
+### Objectives
+- Help in automation and implementation of embedded projects;
+- Provide a rapid prototyping mechanism for microcontrollers applications;
+- Provide a visualization mechanism to foresee the behavior of the project and help in the error spotting.
+
+### Platforms
 - Arduino
 
-## Objetivos do Projeto
-- Auxiliar na automação e implementação de projetos embarcados;
-- Proporcionar prototipagem rápida;
-- Disponibilizar um mecanismo de visualização, tanto para a prever o funcionamento do projeto quanto para ajudar no processo de diagnótico de erros.
-
 ## To Do
-- [ ] Criar um ambiente de desenvolvimento proprício para o projeto (Hooks com o GitHub e outras tecnologias);
-- [ ] Determinar a representação de Máquinas de Moore a ser utilizada (linguagem);
-- [ ] Criar uma gramática para tal linguagem;
-- [ ] Implementar o analisador sintático;
-- [ ] Implementar o analisador semântico;
-- [ ] Gerar código para as plataformas desejadas;
-- [ ] Criar o mecanismo de visualização dos estados da Máquinas de Moore;
+- [ ] Create a suitable development environment for the project (GitHub Hooks (Travis CI) and other technologies);
+- [X] Determine the Moore Machine representation to be used (language);
+- [ ] Create a grammar for the language;
+- [ ] Develop the syntactic analyzer;
+- [ ] Develop the semantic analyzer;
+- [ ] Generate code for the target platforms;
+- [ ] Make a visualization mechanism for the Moore Machine states.
 
 ## Extras
-- [ ] Fazer um logo;
-- [ ] Atualizar/finalizar o README.md para disponibilizar o repositório publicamente.
+- [ ] Design a logo;
+- [ ] Update/finalize the README.md to share this repository;
 
-## Desenvolvedores
-- Dionisius Mayr
-- Daniel Willian
-- Caio Herrera
+## Developers
+- Caio Herrera   - 595004
+- Daniel Willian - 595144
+- Dionisius Mayr - 558257
+
