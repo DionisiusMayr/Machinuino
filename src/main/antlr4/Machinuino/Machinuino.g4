@@ -51,4 +51,5 @@ LETTER			: ('a' .. 'z')
 fragment
 DIGIT			: ('0' .. '9');
 
-ERROR           : . {stop(getLine() + ": Lexical Error: " + getText() + " - invalid symbol" + System.lineSeparator());};
+ERROR           : . {stop(getLine() + ": Lexical Error: " + getText() + " - invalid symbol" +
+                            System.lineSeparator());};

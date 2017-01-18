@@ -15,18 +15,23 @@ Develop a representation and description language for Moore Machines and a Compi
 ## To Do
 - [ ] Create a suitable development environment for the project (GitHub Hooks (Travis CI) and other technologies);
 - [X] Determine the Moore Machine representation to be used (language);
-- [ ] Create a grammar for the language;
-- [ ] Develop the syntactic analyzer;
+- [X] Create a grammar for the language;
+- [X] Develop the syntactic analyzer;
+- [ ] Test and validate the syntactic analyzer;
 - [ ] Develop the semantic analyzer;
-- [ ] Generate code for the target platforms;
-- [ ] Make a visualization mechanism for the Moore Machine states.
+- [ ] Test and validate the semantic analyzer;
+- [ ] Generate code for the target platforms.
 
 ## Extras
 - [ ] Design a logo;
 - [ ] Update/finalize the README.md to share this repository;
+- [ ] Make a visualization mechanism for the Moore Machine states.
 
 ## Developers
 - Caio Herrera   - 595004
 - Daniel Willian - 595144
 - Dionisius Mayr - 558257
 
+[Caio Herrera]: https://github.com/caioherrera
+[Daniel Willian]: https://github.com/OksShammy
+[Dionisius Mayr]: https://github.com/DionisiusMayr
