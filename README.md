@@ -1,5 +1,7 @@
-# Machinuino
-Code generator for microcontrollers
+Machinuino: Code generator for microcontrollers
+===============================================
+
+[![Build status](https://travis-ci.org/DionisiusMayr/Machinuino.svg?branch=master)](https://travis-ci.org/DionisiusMayr/Machinuino)
 
 ## Project
 Develop a representation and description language for Moore Machines and a Compiler to generate code for microcontrollers from this representation.
