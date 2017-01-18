@@ -28,10 +28,6 @@ Develop a representation and description language for Moore Machines and a Compi
 - [ ] Make a visualization mechanism for the Moore Machine states.
 
 ## Developers
-- Caio Herrera   - 595004
-- Daniel Willian - 595144
-- Dionisius Mayr - 558257
-
-[Caio Herrera]: https://github.com/caioherrera
-[Daniel Willian]: https://github.com/OksShammy
-[Dionisius Mayr]: https://github.com/DionisiusMayr
+- [Caio Herrera](https://github.com/caioherrera)   - 595004
+- [Daniel Willian](https://github.com/OksShammy) - 595144
+- [Dionisius Mayr](https://github.com/DionisiusMayr) - 558257
