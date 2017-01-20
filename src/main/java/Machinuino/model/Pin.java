@@ -1,8 +1,8 @@
 package Machinuino.model;
 
 /**
- * Um pino utilizado na interface com a máquina, pode ser tanto de entrada, saída ou o clock
- * Imutável
+ * A real pin used as interface with the machine, can be either input, output or the clock
+ * Immutable
  */
 
 public class Pin {
@@ -16,12 +16,12 @@ public class Pin {
     }
 
     /**
-     * Retorna um pino com os valores passados no parâmetro
+     * Creates a pin with attributes specified by the parameters
      *
-     * @param name nome do pino, não pode ser nulo
-     * @param number número do pino da placa
-     * @return Pin com os valores passados no parâmetro
-     * @throws NullPointerException se o nome passado for nulo
+     * @param name name of the pin, can not be null
+     * @param number number of the pin
+     * @return Pin with attributes specified by the parameters
+     * @throws NullPointerException if the name passed is null
      */
     public static Pin ofValue(String name, int number) throws NullPointerException {
         if (name == null) throw new NullPointerException("Pin#ofValue: name was null!");
