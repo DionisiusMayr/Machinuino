@@ -20,7 +20,7 @@ Develop a representation and description language for Moore Machines and a Compi
 - [X] Determine the Moore Machine representation to be used (language);
 - [X] Create a grammar for the language;
 - [X] Develop the syntactic analyzer;
-- [ ] Test and validate the syntactic analyzer;
+- [X] Test and validate the syntactic analyzer;
 - [ ] Develop the semantic analyzer;
 - [ ] Test and validate the semantic analyzer;
 - [ ] Generate code for the target platforms.
