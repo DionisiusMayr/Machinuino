@@ -49,7 +49,7 @@ public class BoolPin {
     @Override
     public int hashCode() {
         int result = pin.hashCode();
-        return 31*(result + (high ? 1 : 0));
+        return 31 * result + (high ? 1 : 0);
     }
 
     @Override

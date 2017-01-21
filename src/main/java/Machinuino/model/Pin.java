@@ -48,7 +48,7 @@ public class Pin {
     @Override
     public int hashCode() {
         int result = name.hashCode();
-        return 31*(result + number);
+        return 31 * result + number;
     }
 
     @Override
