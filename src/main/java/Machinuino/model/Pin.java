@@ -1,6 +1,12 @@
 package Machinuino.model;
 
+/**
+ * A real pin used as interface with the machine, can be either input, output or the clock
+ * Immutable
+ */
+
 public class Pin {
+
     private String name;
     private int number;
 
@@ -9,7 +15,16 @@ public class Pin {
         this.number = number;
     }
 
-    public static Pin ofValue(String name, int number) {
+    /**
+     * Creates a pin with attributes specified by the parameters
+     *
+     * @param name name of the pin, can not be null
+     * @param number number of the pin
+     * @return Pin with attributes specified by the parameters
+     * @throws NullPointerException if the name passed is null
+     */
+    public static Pin ofValue(String name, int number) throws NullPointerException {
+        if (name == null) throw new NullPointerException("Pin#ofValue: name was null!");
         return new Pin(name, number);
     }
 
