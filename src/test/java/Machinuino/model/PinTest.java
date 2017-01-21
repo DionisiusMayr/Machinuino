@@ -27,6 +27,8 @@ public class PinTest {
     @Test
     public void createNotEqualPins() {
         Assert.assertNotEquals(Pin.ofValue("lmao", 234), Pin.ofValue("rofl", 322));
+        Assert.assertNotEquals(Pin.ofValue("lmao", 234), Pin.ofValue("lmao", 322));
+        Assert.assertNotEquals(Pin.ofValue("lmao", 234), Pin.ofValue("rofl", 234));
     }
 
     @Test

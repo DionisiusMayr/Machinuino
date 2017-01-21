@@ -28,6 +28,12 @@ public class BoolPinTest {
     public void createNotEqualBoolPins() {
         Assert.assertNotEquals(BoolPin.ofValue(Pin.ofValue("lmao", 322), false),
                 BoolPin.ofValue(Pin.ofValue("haha", 0), true));
+        Assert.assertNotEquals(BoolPin.ofValue(Pin.ofValue("lmao", 322), false),
+                BoolPin.ofValue(Pin.ofValue("lmao", 0), true));
+        Assert.assertNotEquals(BoolPin.ofValue(Pin.ofValue("lmao", 322), false),
+                BoolPin.ofValue(Pin.ofValue("lmao", 322), true));
+        Assert.assertNotEquals(BoolPin.ofValue(Pin.ofValue("lmao", 322), false),
+                BoolPin.ofValue(Pin.ofValue("haha", 322), false));
     }
 
     @Test
@@ -40,7 +46,7 @@ public class BoolPinTest {
     @Test
     public void boolPinToString() {
         Pin pin = Pin.ofValue("lmao", 322);
-        Assert.assertEquals("BoolPin {pin=" + pin + ", high=" + true + "}",
-                BoolPin.ofValue(pin, true).toString());
+        Assert.assertEquals("BoolPin {pin=Pin {name='" + "lmao" + "\', number=" + 322 + '}' +
+                ", high=" + true + "}",  BoolPin.ofValue(pin, true).toString());
     }
 }
