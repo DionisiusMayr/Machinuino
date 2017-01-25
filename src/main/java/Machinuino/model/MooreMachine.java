@@ -42,6 +42,16 @@ public class MooreMachine {
             allPinsValues = new HashSet<>();
         }
 
+        public Builder(Builder builder) {
+            this.name = builder.name;
+            this.initialState = builder.initialState;
+            this.states = builder.states;
+            this.inputPins = builder.inputPins;
+            this.outputPins = builder.outputPins;
+            this.outputs = builder.outputs;
+            this.allPinsValues = builder.allPinsValues;
+        }
+
         /**
          * Sets the initial state of the machine, preferably use this method after setting all the
          * states of the machine, as this method will check the set of states before setting the
@@ -66,6 +76,16 @@ public class MooreMachine {
             return this;
         }
 
+        /**
+         * Sets the states of the machine, preferably the states should be one of the first things
+         * to be set as they enable other attributes to be set. This method will verify if the
+         * states passed do not harm the integrity of the machine
+         *
+         * @param states
+         * @return this builder
+         * @throws IllegalArgumentException if there is output for a state of this machine not
+         * on the parameter passed
+         */
         public Builder states(Set<String> states) {
             if (states == null) {
                 throw new NullPointerException(NAME_TAG + "#states: states was null!");
@@ -74,6 +94,13 @@ public class MooreMachine {
                 if (state == null) {
                     throw new NullPointerException(NAME_TAG + "#states: " +
                             "an element of states was null!");
+                }
+            }
+            for (Output output : outputs) {
+                if (!states.contains(output.getState())) {
+                    throw new IllegalArgumentException(NAME_TAG + "#states: " +
+                            states + " did not contain a state which this machine has " +
+                            "an output on " + this);
                 }
             }
             this.states = new HashSet<>(states);
@@ -108,7 +135,10 @@ public class MooreMachine {
          *
          * @param state a state already on this machine, can not be null
          * @return this builder
-         * @throws IllegalArgumentException if the state passed is not on this machine
+         * @throws IllegalArgumentException if the state passed is not on this machine or if this
+         * machine has a output on the state passed
+         * @see #hasState
+         * @see #hasOutput
          */
         public Builder removeState(String state) {
             if (state == null) {
@@ -117,6 +147,10 @@ public class MooreMachine {
             if (!hasState(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#removeState: " +
                         "state was not on the set!");
+            }
+            if (hasOutput(state)) {
+                throw new IllegalArgumentException(NAME_TAG + "#removeState: " +
+                        state + " is a state which this machine has an output on " + this);
             }
             states.remove(state);
             return this;
@@ -304,7 +338,7 @@ public class MooreMachine {
         public BoolPin getPinOfValue(Pin pin, boolean high) {
             if (!hasInputPin(pin) && !hasOutputPin(pin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#getPinOfValue: " +
-                        pin + "was on neither sets of this builder " + this);
+                        pin + " was on neither sets of this builder " + this);
             }
             for (BoolPin boolPin : allPinsValues) {
                 if (boolPin.getPin().equals(pin) && boolPin.isHigh() == high) return boolPin;
