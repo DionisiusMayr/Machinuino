@@ -1,5 +1,7 @@
 package Machinuino.model;
 
+import Machinuino.Utils;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -30,9 +32,7 @@ public class MooreMachine {
         private Set<BoolPin> allPinsValues;
 
         public Builder(String name) {
-            if (name == null) {
-                throw new NullPointerException(NAME_TAG + "#Builder: name was null!");
-            }
+            Utils.verifyNullity(NAME_TAG + "#Builder", "name", name);
             this.name = name;
             initialState = "";
             states = new HashSet<>();
@@ -64,10 +64,7 @@ public class MooreMachine {
          * @see #hasState
          */
         public Builder initialState(String initialState) {
-            if (initialState == null) {
-                throw new NullPointerException(NAME_TAG + "#initialState: " +
-                        "initialState was null!");
-            }
+            Utils.verifyNullity(NAME_TAG + "#initialState", "initialState", initialState);
             if (!hasState(initialState)) {
                 throw new IllegalArgumentException(NAME_TAG + "#initialState: " +
                         initialState + "was not on this builder " + this);
@@ -87,15 +84,7 @@ public class MooreMachine {
          * on the parameter passed
          */
         public Builder states(Set<String> states) {
-            if (states == null) {
-                throw new NullPointerException(NAME_TAG + "#states: states was null!");
-            }
-            for (String state : states) {
-                if (state == null) {
-                    throw new NullPointerException(NAME_TAG + "#states: " +
-                            "an element of states was null!");
-                }
-            }
+            Utils.verifyCollectionNullity(NAME_TAG + "#states", "states", states);
             for (Output output : outputs) {
                 if (!states.contains(output.getState())) {
                     throw new IllegalArgumentException(NAME_TAG + "#states: " +
@@ -119,9 +108,7 @@ public class MooreMachine {
          * @throws IllegalArgumentException if the state passed is already on this machine
          */
         public Builder addState(String state) {
-            if (state == null) {
-                throw new NullPointerException(NAME_TAG + "#addState: state was null!");
-            }
+            Utils.verifyNullity(NAME_TAG + "#addState", "state", state);
             if (hasState(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addState: " +
                         "state already on the set!");
@@ -141,9 +128,7 @@ public class MooreMachine {
          * @see #hasOutput
          */
         public Builder removeState(String state) {
-            if (state == null) {
-                throw new NullPointerException(NAME_TAG + "#removeState: state was null!");
-            }
+            Utils.verifyNullity(NAME_TAG + "#removeState", "state", state);
             if (!hasState(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#removeState: " +
                         "state was not on the set!");
@@ -157,14 +142,11 @@ public class MooreMachine {
         }
 
         public Builder inputPins(Set<Pin> inputPins) {
-            if (inputPins == null) {
-                throw new NullPointerException(NAME_TAG + "#inputPins: " +
-                        "inputPins was null!");
-            }
+            Utils.verifyCollectionNullity(NAME_TAG + "#inputPins", "inputPins", inputPins);
             for (Pin pin : inputPins) {
-                if (pin == null) {
-                    throw new NullPointerException(NAME_TAG + "#inputPins: " +
-                            "an element of inputPins was null!");
+                if (hasOutputPin(pin)) {
+                    throw new IllegalArgumentException(NAME_TAG + "#inputPins: " +
+                            inputPins + " contain an element already on this Builder " + this);
                 }
             }
             for (Pin pin : this.inputPins) {
@@ -208,9 +190,7 @@ public class MooreMachine {
          * @throws IllegalArgumentException if the pin passed is already on this machine
          */
         public Builder addInputPin(Pin inputPin) {
-            if (inputPin == null) {
-                throw new NullPointerException(NAME_TAG + "#addInputPin: inputPin was null!");
-            }
+            Utils.verifyNullity(NAME_TAG + "#addInputPin", "inputPin", inputPin);
             if (hasInputPin(inputPin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addInputPin: " +
                         inputPin + " already on the set!");
@@ -241,16 +221,7 @@ public class MooreMachine {
         }
 
         public Builder outputPins(Set<Pin> outputPins) {
-            if (outputPins == null) {
-                throw new NullPointerException(NAME_TAG + "#outputPins: " +
-                        "outputPins was null!");
-            }
-            for (Pin pin : outputPins) {
-                if (pin == null) {
-                    throw new NullPointerException(NAME_TAG + "#outputPins: " +
-                            "an element of outputPins was null!");
-                }
-            }
+            Utils.verifyCollectionNullity(NAME_TAG + "#outputPins", "outputPins", outputPins);
             for (Pin pin : this.outputPins) {
                 allPinsValues.remove(getPinOfValue(pin, true));
                 allPinsValues.remove(getPinOfValue(pin, false));
@@ -292,9 +263,7 @@ public class MooreMachine {
          * @throws IllegalArgumentException if the pin passed is already on this machine
          */
         public Builder addOutputPin(Pin outputPin) {
-            if (outputPin == null) {
-                throw new NullPointerException(NAME_TAG + "#addOutputPin: outputPin was null!");
-            }
+            Utils.verifyNullity(NAME_TAG + "#addOutputPin", "outputPin", outputPin);
             if (hasOutputPin(outputPin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addOutputPin: " +
                         outputPin + " already on the set!");
@@ -362,15 +331,7 @@ public class MooreMachine {
          * @see #hasInputPin
          */
         public Builder outputs(Set<Output> outputs) {
-            if (outputs == null) {
-                throw new NullPointerException(NAME_TAG + "#outputs: outputs was null!");
-            }
-            for (Output output : outputs) {
-                if (output == null) {
-                    throw new NullPointerException(NAME_TAG + "#outputs: " +
-                            "an alement of outputs was null!");
-                }
-            }
+            Utils.verifyCollectionNullity(NAME_TAG + "#outputs", "outputs", outputs);
             for (Output output : outputs) {
                 if (!hasState(output.getState())) {
                     throw new IllegalArgumentException(NAME_TAG + "#outputs: " +
@@ -413,19 +374,8 @@ public class MooreMachine {
                 throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
                         state + "was already on this builder " + this);
             }
-            if (state == null) {
-                throw new NullPointerException(NAME_TAG + "#addOutput: state was null!");
-            }
-            if (boolPins == null) {
-                throw new NullPointerException(NAME_TAG + "#addOutput: " +
-                        "boolPins was null!");
-            }
-            for (BoolPin boolPin : boolPins) {
-                if (boolPin == null) {
-                    throw new NullPointerException(NAME_TAG + "#addOutput: " +
-                            "an element of boolPins was null!");
-                }
-            }
+            Utils.verifyNullity(NAME_TAG + "#addOutput", "state", state);
+            Utils.verifyCollectionNullity(NAME_TAG + "#addOutput", "boolPins", boolPins);
             if (!hasState(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
                         state + "was not on this builder " + this);
