@@ -111,7 +111,7 @@ public class MooreMachine {
             Utils.verifyNullity(NAME_TAG + "#addState", "state", state);
             if (hasState(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addState: " +
-                        "state already on the set!");
+                        state + " already on this builder " + this);
             }
             states.add(state);
             return this;
@@ -131,7 +131,7 @@ public class MooreMachine {
             Utils.verifyNullity(NAME_TAG + "#removeState", "state", state);
             if (!hasState(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#removeState: " +
-                        "state was not on the set!");
+                        state + " was not on this builder " + this);
             }
             if (hasOutput(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#removeState: " +
@@ -193,7 +193,7 @@ public class MooreMachine {
             Utils.verifyNullity(NAME_TAG + "#addInputPin", "inputPin", inputPin);
             if (hasInputPin(inputPin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addInputPin: " +
-                        inputPin + " already on the set!");
+                        inputPin + " already on this builder " + this);
             }
             allPinsValues.add(BoolPin.ofValue(inputPin, true));
             allPinsValues.add(BoolPin.ofValue(inputPin, false));
@@ -210,9 +210,10 @@ public class MooreMachine {
          * @see #hasInputPin
          */
         public Builder removeInputPin(Pin inputPin) {
+            Utils.verifyNullity(NAME_TAG + "#removeInputPin", "inputPin", inputPin);
             if (!hasInputPin(inputPin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#removeInputPin: " +
-                        inputPin + " was not on the set!");
+                        inputPin + " was not on this builder " + this);
             }
             allPinsValues.remove(getPinOfValue(inputPin, true));
             allPinsValues.remove(getPinOfValue(inputPin, false));
