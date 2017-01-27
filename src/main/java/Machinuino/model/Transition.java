@@ -1,6 +1,7 @@
 package Machinuino.model;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Transition {
 
@@ -8,25 +9,34 @@ public class Transition {
     private Set<BoolPin> input;
 
     private Transition(String previousState, String nextState, Set<BoolPin> input) {
-        setPreviousState(previousState);
-        setNextState(nextState);
-        this.input = new HashSet<BoolPin>(input);
-    }
-
-    public static Transition ofValue(String previousState, String nextState, Set<BoolPin> input) {
-        return new Transition(previousState, nextState, input);
-    }
-
-    private void setPreviousState(String previousState) {
         this.previousState = previousState;
+        this.nextState = nextState;
+        this.input = new HashSet<>(input);
+    }
+
+    /**
+     * Creates a transition with attributes specified by the parameters
+     * @param previousState current state before the transition
+     * @param nextState current state after the transition
+     * @param input values of the pins that cause the transition
+     * @return Transition with attributes specified by the parameters
+     */
+    public static Transition ofValue(String previousState, String nextState, Set<BoolPin> input)
+            throws NullPointerException {
+
+        if(previousState == null) throw new NullPointerException("Transition#ofValue: " +
+                "previousState was null!");
+        if(nextState == null) throw new NullPointerException("Transition#ofValue: " +
+                "nextState was null!");
+        if(input == null) throw new NullPointerException("Transition#ofValue: " +
+                "input was null!");
+
+
+        return new Transition(previousState, nextState, input);
     }
 
     public String getPreviousState() {
         return previousState;
-    }
-
-    private void setNextState(String nextState) {
-        this.nextState = nextState;
     }
 
     public String getNextState() {
@@ -51,10 +61,10 @@ public class Transition {
 
     @Override
     public String toString() {
-        return "Transition {" + System.lineSeparator() +
-                "previous_state = " + previousState + System.lineSeparator() +
-                "input = " + input.toString() + System.lineSeparator() +
-                "next_state = " + nextState + System.lineSeparator() +
+        return "Transition {" +
+                "previous_state='" + previousState + "\'" +
+                ", input='" + input.toString() + "\'" +
+                ", next_state='" + nextState +
                 "}";
     }
 
