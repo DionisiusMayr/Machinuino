@@ -150,8 +150,8 @@ public class MooreMachine {
                 }
             }
             for (Pin pin : this.inputPins) {
-                allPinsValues.remove(getPinOfValue(pin, true));
-                allPinsValues.remove(getPinOfValue(pin, false));
+                allPinsValues.remove(getBoolPinOfValue(pin, true));
+                allPinsValues.remove(getBoolPinOfValue(pin, false));
             }
             this.inputPins = new HashSet<>(inputPins);
             for (Pin pin : inputPins) {
@@ -191,7 +191,7 @@ public class MooreMachine {
          */
         public Builder addInputPin(Pin inputPin) {
             Utils.verifyNullity(NAME_TAG + "#addInputPin", "inputPin", inputPin);
-            if (hasInputPin(inputPin)) {
+            if (hasInputPin(inputPin) || hasOutputPin(inputPin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addInputPin: " +
                         inputPin + " already on this builder " + this);
             }
@@ -215,17 +215,23 @@ public class MooreMachine {
                 throw new IllegalArgumentException(NAME_TAG + "#removeInputPin: " +
                         inputPin + " was not on this builder " + this);
             }
-            allPinsValues.remove(getPinOfValue(inputPin, true));
-            allPinsValues.remove(getPinOfValue(inputPin, false));
+            allPinsValues.remove(getBoolPinOfValue(inputPin, true));
+            allPinsValues.remove(getBoolPinOfValue(inputPin, false));
             inputPins.remove(inputPin);
             return this;
         }
 
         public Builder outputPins(Set<Pin> outputPins) {
             Utils.verifyCollectionNullity(NAME_TAG + "#outputPins", "outputPins", outputPins);
+            for (Pin pin : outputPins) {
+                if (hasInputPin(pin)) {
+                    throw new IllegalArgumentException(NAME_TAG + "#outputPins: " +
+                            outputPins + " contain an element already on this Builder " + this);
+                }
+            }
             for (Pin pin : this.outputPins) {
-                allPinsValues.remove(getPinOfValue(pin, true));
-                allPinsValues.remove(getPinOfValue(pin, false));
+                allPinsValues.remove(getBoolPinOfValue(pin, true));
+                allPinsValues.remove(getBoolPinOfValue(pin, false));
             }
             this.outputPins = new HashSet<>(outputPins);
             for (Pin pin : outputPins) {
@@ -265,7 +271,7 @@ public class MooreMachine {
          */
         public Builder addOutputPin(Pin outputPin) {
             Utils.verifyNullity(NAME_TAG + "#addOutputPin", "outputPin", outputPin);
-            if (hasOutputPin(outputPin)) {
+            if (hasOutputPin(outputPin) || hasInputPin(outputPin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addOutputPin: " +
                         outputPin + " already on the set!");
             }
@@ -284,12 +290,13 @@ public class MooreMachine {
          * @see #hasOutputPin
          */
         public Builder removeOutputPin(Pin outputPin) {
+            Utils.verifyNullity(NAME_TAG + "#removeOutputPin", "outputPin", outputPin);
             if (!hasOutputPin(outputPin)) {
                 throw new IllegalArgumentException(NAME_TAG + "#removeOutputPin: " +
-                        outputPin + "was not on the set!");
+                        outputPin + " was not on the set!");
             }
-            allPinsValues.remove(getPinOfValue(outputPin, true));
-            allPinsValues.remove(getPinOfValue(outputPin, false));
+            allPinsValues.remove(getBoolPinOfValue(outputPin, true));
+            allPinsValues.remove(getBoolPinOfValue(outputPin, false));
             outputPins.remove(outputPin);
             return this;
         }
@@ -305,15 +312,20 @@ public class MooreMachine {
          * @see #hasOutputPin
          * @see #hasInputPin
          */
-        public BoolPin getPinOfValue(Pin pin, boolean high) {
+        public BoolPin getBoolPinOfValue(Pin pin, boolean high) {
+            Utils.verifyNullity(NAME_TAG + "#getBoolPinOfValue", "pin", pin);
             if (!hasInputPin(pin) && !hasOutputPin(pin)) {
-                throw new IllegalArgumentException(NAME_TAG + "#getPinOfValue: " +
+                throw new IllegalArgumentException(NAME_TAG + "#getBoolPinOfValue: " +
                         pin + " was on neither sets of this builder " + this);
             }
+            BoolPin boolPinReturned = null;
             for (BoolPin boolPin : allPinsValues) {
-                if (boolPin.getPin().equals(pin) && boolPin.isHigh() == high) return boolPin;
+                if (boolPin.getPin().equals(pin) && boolPin.isHigh() == high) {
+                    boolPinReturned = boolPin;
+                    break;
+                }
             }
-            return null;
+            return boolPinReturned;
         }
 
         /**
