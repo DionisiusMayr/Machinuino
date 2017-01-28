@@ -34,22 +34,22 @@ public class MooreMachine {
         public Builder(String name) {
             Utils.verifyNullity(NAME_TAG + "#Builder", "name", name);
             this.name = name;
-            initialState = "";
-            states = new HashSet<>();
-            inputPins = new HashSet<>();
-            outputPins = new HashSet<>();
-            outputs = new HashSet<>();
-            allPinsValues = new HashSet<>();
+            this.initialState = "";
+            this.states = new HashSet<>();
+            this.inputPins = new HashSet<>();
+            this.outputPins = new HashSet<>();
+            this.outputs = new HashSet<>();
+            this.allPinsValues = new HashSet<>();
         }
 
         public Builder(Builder builder) {
             this.name = builder.name;
             this.initialState = builder.initialState;
-            this.states = builder.states;
-            this.inputPins = builder.inputPins;
-            this.outputPins = builder.outputPins;
-            this.outputs = builder.outputs;
-            this.allPinsValues = builder.allPinsValues;
+            this.states = new HashSet<>();
+            this.inputPins = new HashSet<>();
+            this.outputPins = new HashSet<>();
+            this.outputs = new HashSet<>();
+            this.allPinsValues = new HashSet<>();
         }
 
         /**
@@ -352,10 +352,10 @@ public class MooreMachine {
                             " contained a state not on this builder " + this);
                 }
                 Set<Pin> pins = new HashSet<>();
-                for (BoolPin boolPin : output.getPins()) {
+                for (BoolPin boolPin : output.getBoolPins()) {
                     pins.add(boolPin.getPin());
                 }
-                if (output.getPins().size() != pins.size()) {
+                if (output.getBoolPins().size() != pins.size()) {
                     throw new IllegalArgumentException(NAME_TAG + "#outputs: " +
                             "there is a pin with two values on " + outputs);
                 }

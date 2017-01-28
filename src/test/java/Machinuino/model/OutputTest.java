@@ -31,7 +31,7 @@ public class OutputTest {
         pins.add(BoolPin.ofValue(Pin.ofValue("haha", 0), true));
         Output output = Output.ofValue("lmao", pins);
         Assert.assertEquals("lmao", output.getState());
-        Assert.assertEquals(pins, output.getPins());
+        Assert.assertEquals(pins, output.getBoolPins());
     }
 
     @Test
@@ -40,11 +40,11 @@ public class OutputTest {
         pins.add(BoolPin.ofValue(Pin.ofValue("haha", 0), true));
         Output output = Output.ofValue("lmao", pins);
         pins.add(BoolPin.ofValue(Pin.ofValue("hehe", 1), false));
-        Assert.assertNotEquals(pins, output.getPins());
+        Assert.assertNotEquals(pins, output.getBoolPins());
 
-        Set<BoolPin> boolPins = output.getPins();
+        Set<BoolPin> boolPins = output.getBoolPins();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("hehe", 1), false));
-        Assert.assertNotEquals(boolPins, output.getPins());
+        Assert.assertNotEquals(boolPins, output.getBoolPins());
     }
 
     @Test
