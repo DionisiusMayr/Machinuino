@@ -707,4 +707,41 @@ public class MooreMachineTest {
         Assert.assertEquals(mooreMachine.getOutputs(), outputs);
     }
 
+    @Test
+    public void mooreMachineNotEqualMooreMachine() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        MooreMachine machine1 = builder.build();
+        builder.addInputPin(Pin.ofValue("rofl", 5));
+        MooreMachine machine2 = builder.build();
+        Assert.assertNotEquals(machine1, machine2);
+    }
+
+    @Test
+    public void mooreMachineEqualMooreMachine() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        MooreMachine machine1 = builder.build();
+        MooreMachine machine2 = builder.build();
+        Assert.assertEquals(machine1, machine2);
+    }
+
+    @Test
+    public void mooreMachineEqualMooreMachineEqualHashcode() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        MooreMachine machine1 = builder.build();
+        MooreMachine machine2 = builder.build();
+        Assert.assertEquals(machine1.hashCode(), machine2.hashCode());
+    }
+
+    @Test
+    public void mooreMachineToString() {
+        MooreMachine machine = new MooreMachine.Builder(defaultBuilder).build();
+        Set<String> states = machine.getStates();
+        Set<Pin> inputPins = machine.getInputPins();
+        Set<Pin> outputPins = machine.getOutputPins();
+        Set<Output> outputs = machine.getOutputs();
+        Assert.assertEquals(machine.toString(), "MooreMachine{" +
+                "name='" + machine.getName() + "\', initialState='" + machine.getInitialState() +
+                "\', states=" + states + ", inputPins=" + inputPins + ", outputPins=" + outputPins +
+                ", outputs=" + outputs + '}');
+    }
 }

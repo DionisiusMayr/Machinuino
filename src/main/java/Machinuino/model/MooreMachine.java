@@ -78,7 +78,7 @@ public class MooreMachine {
          * to be set as they enable other attributes to be set. This method will verify if the
          * states passed do not harm the integrity of the machine
          *
-         * @param states
+         * @param states states of the machine
          * @return this builder
          * @throws IllegalArgumentException if there is output for a state of this machine not
          * on the parameter passed
@@ -468,11 +468,11 @@ public class MooreMachine {
     private MooreMachine(Builder builder) {
         this.name = builder.name;
         this.initialState = builder.initialState;
-        this.states = builder.states;
-        this.inputPins = builder.inputPins;
-        this.outputPins = builder.outputPins;
-        this.outputs = builder.outputs;
-        this.allPinsValues = builder.allPinsValues;
+        this.states = new HashSet<>(builder.states);
+        this.inputPins = new HashSet<>(builder.inputPins);
+        this.outputPins = new HashSet<>(builder.outputPins);
+        this.outputs = new HashSet<>(builder.outputs);
+        this.allPinsValues = new HashSet<>(builder.allPinsValues);
     }
 
     public String getName() {
@@ -501,5 +501,40 @@ public class MooreMachine {
 
     public Set<BoolPin> getAllPinsValues() {
         return new HashSet<>(allPinsValues);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (o == this) return true;
+        if (o.getClass() != getClass()) return false;
+
+        MooreMachine machine = (MooreMachine) o;
+        return name.equals(machine.name) && initialState.equals(machine.initialState) &&
+                states.equals(machine.states) && inputPins.equals(machine.inputPins) &&
+                outputPins.equals(machine.outputPins) && outputs.equals(machine.outputs);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + initialState.hashCode();
+        result = 31 * result + states.hashCode();
+        result = 31 * result + inputPins.hashCode();
+        result = 31 * result + outputPins.hashCode();
+        result = 31 * result + outputs.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "MooreMachine{" +
+                "name='" + name + '\'' +
+                ", initialState='" + initialState + '\'' +
+                ", states=" + states +
+                ", inputPins=" + inputPins +
+                ", outputPins=" + outputPins +
+                ", outputs=" + outputs +
+                '}';
     }
 }
