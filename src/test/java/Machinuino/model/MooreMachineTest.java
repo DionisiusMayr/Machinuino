@@ -1,5 +1,6 @@
 package Machinuino.model;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -271,4 +272,284 @@ public class MooreMachineTest {
         Assert.assertFalse(machine.getInputPins().contains(Pin.ofValue("haha", 1)));
         Assert.assertFalse(machine.getAllPinsValues().containsAll(boolPins));
     }
+
+    /* Output tests */
+    @Test(expected = NullPointerException.class)
+    public void builderSetNullOutputShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        builder.outputs(null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void builderSetOutputsWithNullOutputShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<Output> outputs = new HashSet<>();
+        outputs.add(null);
+        builder.outputs(outputs);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetOutputsWithStateNotOnBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<Output> outputs = new HashSet<>();
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        outputs.add(Output.ofValue("q0", boolPins));
+        builder.outputs(outputs);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetOutputsWithPinNotOnBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<Output> outputs = new HashSet<>();
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        outputs.add(Output.ofValue("q0", boolPins));
+        builder.outputs(outputs);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetOutputsWithInputPinShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<Output> outputs = new HashSet<>();
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addInputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        outputs.add(Output.ofValue("q0", boolPins));
+        builder.outputs(outputs);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetOutputsWithPinWithTwoValuesShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<Output> outputs = new HashSet<>();
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+        boolPins.add(BoolPin.ofValue(pin, false));
+
+        outputs.add(Output.ofValue("q0", boolPins));
+        builder.outputs(outputs);
+    }
+
+    @Test
+    public void builderSetOutputs() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<Output> outputs = new HashSet<>();
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        outputs.add(Output.ofValue("q0", boolPins));
+        builder.outputs(outputs);
+
+        MooreMachine mooreMachine = builder.build();
+        Assert.assertEquals(outputs, mooreMachine.getOutputs());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void builderAddOutputWithNullStateShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        builder.addOutput(null, boolPins);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void builderAddOutputWithNullBoolPinsShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        builder.addState("q0");
+
+        builder.addOutput("q0", null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderAddOutputWithStateNotOnBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        builder.addOutput("q0", boolPins);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderAddOutputWithPinNotOnBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        builder.addOutput("q0", boolPins);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderAddOutputWithInputPinShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addInputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        builder.addOutput("q0", boolPins);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderAddOutputWithPinWithTwoValuesShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+        boolPins.add(BoolPin.ofValue(pin, false));
+
+        builder.addOutput("q0", boolPins);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderAddOutputWithStateWithAlreadyAnOutputShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+        boolPins.add(BoolPin.ofValue(pin, true));
+
+        builder.addOutput("q0", boolPins);
+        builder.addOutput("q0", boolPins);
+    }
+
+    @Test
+    public void builderAddOutput() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+        Set<Output> outputs = new HashSet<>();
+
+        builder.addState("q0");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+
+        boolPins.add(BoolPin.ofValue(pin, true));
+        builder.addOutput("q0", boolPins);
+        outputs.add(Output.ofValue("q0", boolPins));
+
+        MooreMachine mooreMachine = builder.build();
+        Assert.assertEquals(outputs, mooreMachine.getOutputs());
+    }
+
+    @Test
+    public void builderAddOutputWithAlreadyOutputsOnBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Pin pin = Pin.ofValue("pin", 5);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void builderRemoveOutputWithNullStateShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+
+        builder.removeOutput(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderRemoveOutputWithStateNotOnBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+
+        builder.removeOutput("q0");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderRemoveOutputWithStateWithoutOutputShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        builder.addState("q0");
+
+        builder.removeOutput("q0");
+    }
+
+    @Test
+    public void builderRemoveOutput() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("m1");
+        Set<BoolPin> boolPins = new HashSet<>();
+        Set<Output> outputs = new HashSet<>();
+
+        builder.addState("q0");
+        builder.addState("q1");
+        Pin pin = Pin.ofValue("pin", 2);
+        builder.addOutputPin(pin);
+
+        boolPins.add(BoolPin.ofValue(pin, true));
+        builder.addOutput("q0", boolPins);
+        builder.addOutput("q1", boolPins);
+        outputs.add(Output.ofValue("q0", boolPins));
+        builder.removeOutput("q1");
+
+        MooreMachine mooreMachine = builder.build();
+        Assert.assertEquals(outputs, mooreMachine.getOutputs());
+    }
+
+    @Test
+    public void builderReturnFromGetEqualsInitialValues() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("M1");
+
+        Set<String> states = new HashSet<>();
+        states.add("q0");
+        states.add("q1");
+
+        Set<Pin> inputPins = new HashSet<>();
+        inputPins.add(Pin.ofValue("input", 1));
+
+        Set<Pin> outputPins = new HashSet<>();
+        outputPins.add(Pin.ofValue("output", 2));
+
+        Set<BoolPin> boolPins = new HashSet<>();
+        boolPins.add(BoolPin.ofValue(Pin.ofValue("output", 2), true));
+
+        Set<Output> outputs = new HashSet<>();
+        outputs.add(Output.ofValue("q0", boolPins));
+
+        builder.states(states);
+        builder.initialState("q0");
+        builder.inputPins(inputPins);
+        builder.outputPins(outputPins);
+        builder.outputs(outputs);
+
+        MooreMachine mooreMachine = builder.build();
+
+        Assert.assertEquals(mooreMachine.getName(), "M1");
+        Assert.assertEquals(mooreMachine.getInitialState(), "q0");
+        Assert.assertEquals(mooreMachine.getStates(), states);
+        Assert.assertEquals(mooreMachine.getInputPins(), inputPins);
+        Assert.assertEquals(mooreMachine.getOutputPins(), outputPins);
+        Assert.assertEquals(mooreMachine.getOutputs(), outputs);
+    }
+
 }

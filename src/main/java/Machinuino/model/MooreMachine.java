@@ -339,7 +339,15 @@ public class MooreMachine {
                             "an element of outputs " + outputs +
                             " contained a state not on this builder " + this);
                 }
-                if (!allPinsValues.containsAll(output.getPins())) {
+                Set<Pin> pins = new HashSet<>();
+                for (BoolPin boolPin : output.getPins()) {
+                    pins.add(boolPin.getPin());
+                }
+                if (output.getPins().size() != pins.size()) {
+                    throw new IllegalArgumentException(NAME_TAG + "#outputs: " +
+                            "there is a pin with two values on " + outputs);
+                }
+                if (!outputPins.containsAll(pins)) {
                     throw new IllegalArgumentException(NAME_TAG + "#outputs: " +
                             "an element of outputs " + outputs +
                             " contained at least a Pin not on this builder " + this);
@@ -381,7 +389,15 @@ public class MooreMachine {
                 throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
                         state + "was not on this builder " + this);
             }
-            if (!allPinsValues.containsAll(boolPins)) {
+            Set<Pin> pins = new HashSet<>();
+            for (BoolPin boolPin : boolPins) {
+                pins.add(boolPin.getPin());
+            }
+            if (boolPins.size() != pins.size()) {
+                throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
+                        "there is a pin with two values on " + boolPins);
+            }
+            if (!outputPins.containsAll(pins)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
                         boolPins + " contained at least a Pin not on this builder " + this);
             }
@@ -399,6 +415,7 @@ public class MooreMachine {
          * @see #hasOutput
          */
         public Builder removeOutput(String state) {
+            Utils.verifyNullity(NAME_TAG + "#removeOutput", "state", state);
             if (!hasOutput(state)) {
                 throw new IllegalArgumentException(NAME_TAG + "#removeOutput: " +
                         state + "was not on this builder " + this);
