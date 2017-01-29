@@ -101,6 +101,18 @@ public class MooreMachineTest {
         Assert.assertEquals(strings, machine.getStates());
     }
 
+    @Test
+    public void builderHasStateNotOnBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertFalse(builder.hasState("limao"));
+    }
+
+    @Test
+    public void builderHasStateOnBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertTrue(builder.hasState("q0"));
+    }
+
     @Test(expected = NullPointerException.class)
     public void builderAddNullStateShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
@@ -220,6 +232,18 @@ public class MooreMachineTest {
         pins.add(Pin.ofValue("haha", 1));
         builder.inputPins(pins);
         Assert.assertEquals(Pin.ofValue("haha", 1), builder.getInputPinOfName("haha"));
+    }
+
+    @Test
+    public void builderHasInputPinNotOnTheBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertFalse(builder.hasInputPin(builder.getInputPinOfName("limao")));
+    }
+
+    @Test
+    public void builderHasInputPinOnTheBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertTrue(builder.hasInputPin(builder.getInputPinOfName("clock")));
     }
 
     @Test(expected = NullPointerException.class)
@@ -345,6 +369,18 @@ public class MooreMachineTest {
         pins.add(Pin.ofValue("haha", 1));
         builder.outputPins(pins);
         Assert.assertEquals(Pin.ofValue("haha", 1), builder.getOutputPinOfName("haha"));
+    }
+
+    @Test
+    public void builderHasOutputPinNotOnTheBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertFalse(builder.hasOutputPin(builder.getOutputPinOfName("limao")));
+    }
+
+    @Test
+    public void builderHasOutputPinOnTheBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertTrue(builder.hasOutputPin(builder.getOutputPinOfName("lmao")));
     }
 
     @Test(expected = NullPointerException.class)
@@ -518,6 +554,18 @@ public class MooreMachineTest {
 
         MooreMachine mooreMachine = builder.build();
         Assert.assertEquals(outputs, mooreMachine.getOutputs());
+    }
+
+    @Test
+    public void builderHasOutputNotOnTheBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertFalse(builder.hasOutput("limao"));
+    }
+
+    @Test
+    public void builderHasOutputOnTheBuilder() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Assert.assertTrue(builder.hasOutput("q0"));
     }
 
     @Test(expected = NullPointerException.class)
@@ -705,6 +753,44 @@ public class MooreMachineTest {
         Assert.assertEquals(mooreMachine.getInputPins(), inputPins);
         Assert.assertEquals(mooreMachine.getOutputPins(), outputPins);
         Assert.assertEquals(mooreMachine.getOutputs(), outputs);
+    }
+
+    @Test
+    public void builderToString() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("M1");
+
+        Set<String> states = new HashSet<>();
+        states.add("q0");
+        states.add("q1");
+
+        Set<Pin> inputPins = new HashSet<>();
+        inputPins.add(Pin.ofValue("input", 1));
+
+        Set<Pin> outputPins = new HashSet<>();
+        outputPins.add(Pin.ofValue("output", 2));
+
+        Set<BoolPin> boolPins = new HashSet<>();
+        boolPins.add(BoolPin.ofValue(Pin.ofValue("output", 2), true));
+
+        Set<Output> outputs = new HashSet<>();
+        outputs.add(Output.ofValue("q0", boolPins));
+
+        builder.states(states);
+        builder.initialState("q0");
+        builder.inputPins(inputPins);
+        builder.outputPins(outputPins);
+        builder.outputs(outputs);
+
+        Set<BoolPin> boolPins1 = new HashSet<>();
+        boolPins1.add(BoolPin.ofValue(Pin.ofValue("input", 1), false));
+        boolPins1.add(BoolPin.ofValue(Pin.ofValue("input", 1), true));
+        boolPins1.add(BoolPin.ofValue(Pin.ofValue("output", 2), false));
+        boolPins1.add(BoolPin.ofValue(Pin.ofValue("output", 2), true));
+
+        Assert.assertEquals(builder.toString(), "Builder{" +
+                "name='" + "M1" + "\', initialState='" + "q0" +
+                "\', states=" + states + ", inputPins=" + inputPins + ", outputPins=" + outputPins +
+                ", outputs=" + outputs + ", allPinsValues=" + boolPins1 + '}');
     }
 
     @Test

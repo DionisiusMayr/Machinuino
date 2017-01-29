@@ -3,8 +3,10 @@ package Machinuino.model;
 import Machinuino.Utils;
 
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MooreMachine {
 
@@ -45,11 +47,11 @@ public class MooreMachine {
         public Builder(Builder builder) {
             this.name = builder.name;
             this.initialState = builder.initialState;
-            this.states = new HashSet<>();
-            this.inputPins = new HashSet<>();
-            this.outputPins = new HashSet<>();
-            this.outputs = new HashSet<>();
-            this.allPinsValues = new HashSet<>();
+            this.states = new HashSet<>(builder.states);
+            this.inputPins = new HashSet<>(builder.inputPins);
+            this.outputPins = new HashSet<>(builder.outputPins);
+            this.outputs = new HashSet<>(builder.outputs);
+            this.allPinsValues = new HashSet<>(builder.allPinsValues);
         }
 
         /**
@@ -65,10 +67,8 @@ public class MooreMachine {
          */
         public Builder initialState(String initialState) {
             Utils.verifyNullity(NAME_TAG + "#initialState", "initialState", initialState);
-            if (!hasState(initialState)) {
-                throw new IllegalArgumentException(NAME_TAG + "#initialState: " +
-                        initialState + "was not on this builder " + this);
-            }
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#initialState", "initialState",
+                    initialState, "states of this builder", states, true);
             this.initialState = initialState;
             return this;
         }
@@ -85,12 +85,10 @@ public class MooreMachine {
          */
         public Builder states(Set<String> states) {
             Utils.verifyCollectionNullity(NAME_TAG + "#states", "states", states);
-            for (Output output : outputs) {
-                if (!states.contains(output.getState())) {
-                    throw new IllegalArgumentException(NAME_TAG + "#states: " +
-                            states + " did not contain a state which this machine has " +
-                            "an output on " + this);
-                }
+            for (String state :
+                    outputs.stream().map(Output::getState).collect(Collectors.toSet())) {
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#states", "state of an output of this" +
+                        "builder", state, "states", states, true);
             }
             this.states = new HashSet<>(states);
             return this;
@@ -109,10 +107,8 @@ public class MooreMachine {
          */
         public Builder addState(String state) {
             Utils.verifyNullity(NAME_TAG + "#addState", "state", state);
-            if (hasState(state)) {
-                throw new IllegalArgumentException(NAME_TAG + "#addState: " +
-                        state + " already on this builder " + this);
-            }
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#addState", "state",
+                    state, "states of this builder", states, false);
             states.add(state);
             return this;
         }
@@ -129,14 +125,11 @@ public class MooreMachine {
          */
         public Builder removeState(String state) {
             Utils.verifyNullity(NAME_TAG + "#removeState", "state", state);
-            if (!hasState(state)) {
-                throw new IllegalArgumentException(NAME_TAG + "#removeState: " +
-                        state + " was not on this builder " + this);
-            }
-            if (hasOutput(state)) {
-                throw new IllegalArgumentException(NAME_TAG + "#removeState: " +
-                        state + " is a state which this machine has an output on " + this);
-            }
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#removeState", "state", state,
+                    "states of this builder", states, true);
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#removeState", "state", state,
+                    "states which have output",
+                    outputs.stream().map(Output::getState).collect(Collectors.toSet()), false);
             states.remove(state);
             return this;
         }
@@ -144,15 +137,10 @@ public class MooreMachine {
         public Builder inputPins(Set<Pin> inputPins) {
             Utils.verifyCollectionNullity(NAME_TAG + "#inputPins", "inputPins", inputPins);
             for (Pin pin : inputPins) {
-                if (hasOutputPin(pin)) {
-                    throw new IllegalArgumentException(NAME_TAG + "#inputPins: " +
-                            inputPins + " contain an element already on this Builder " + this);
-                }
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#inputPins", "inputPin", pin,
+                        "outputPins of this builder", outputPins, false);
             }
-            for (Pin pin : this.inputPins) {
-                allPinsValues.remove(getBoolPinOfValue(pin, true));
-                allPinsValues.remove(getBoolPinOfValue(pin, false));
-            }
+            allPinsValues.removeIf(boolPin -> this.inputPins.contains(boolPin.getPin()));
             this.inputPins = new HashSet<>(inputPins);
             for (Pin pin : inputPins) {
                 allPinsValues.add(BoolPin.ofValue(pin, true));
@@ -168,10 +156,10 @@ public class MooreMachine {
          * @return a pin with the specified name or null if not found
          */
         public Pin getInputPinOfName(String name) {
-            for (Pin pin : inputPins) {
-                if (pin.getName().equals(name)) return pin;
-            }
-            return null;
+            Optional<Pin> optional = inputPins.stream()
+                    .filter(pin -> pin.getName().equals(name))
+                    .findFirst();
+            return optional.isPresent() ? optional.get() : null;
         }
 
         /**
@@ -191,10 +179,10 @@ public class MooreMachine {
          */
         public Builder addInputPin(Pin inputPin) {
             Utils.verifyNullity(NAME_TAG + "#addInputPin", "inputPin", inputPin);
-            if (hasInputPin(inputPin) || hasOutputPin(inputPin)) {
-                throw new IllegalArgumentException(NAME_TAG + "#addInputPin: " +
-                        inputPin + " already on this builder " + this);
-            }
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#addInputPin", "inputPin", inputPin,
+                    "pins of this builder",
+                    Stream.concat(inputPins.stream(), outputPins.stream())
+                            .collect(Collectors.toSet()), false);
             allPinsValues.add(BoolPin.ofValue(inputPin, true));
             allPinsValues.add(BoolPin.ofValue(inputPin, false));
             inputPins.add(inputPin);
@@ -211,12 +199,9 @@ public class MooreMachine {
          */
         public Builder removeInputPin(Pin inputPin) {
             Utils.verifyNullity(NAME_TAG + "#removeInputPin", "inputPin", inputPin);
-            if (!hasInputPin(inputPin)) {
-                throw new IllegalArgumentException(NAME_TAG + "#removeInputPin: " +
-                        inputPin + " was not on this builder " + this);
-            }
-            allPinsValues.remove(getBoolPinOfValue(inputPin, true));
-            allPinsValues.remove(getBoolPinOfValue(inputPin, false));
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#removeInputPin", "inputPin", inputPin,
+                    "inputPins of this builder", inputPins, true);
+            allPinsValues.removeIf(boolPin -> boolPin.getPin().equals(inputPin));
             inputPins.remove(inputPin);
             return this;
         }
@@ -224,15 +209,10 @@ public class MooreMachine {
         public Builder outputPins(Set<Pin> outputPins) {
             Utils.verifyCollectionNullity(NAME_TAG + "#outputPins", "outputPins", outputPins);
             for (Pin pin : outputPins) {
-                if (hasInputPin(pin)) {
-                    throw new IllegalArgumentException(NAME_TAG + "#outputPins: " +
-                            outputPins + " contain an element already on this Builder " + this);
-                }
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#outputPins", "outputPin", pin,
+                        "inputPins of this builder", inputPins, false);
             }
-            for (Pin pin : this.outputPins) {
-                allPinsValues.remove(getBoolPinOfValue(pin, true));
-                allPinsValues.remove(getBoolPinOfValue(pin, false));
-            }
+            allPinsValues.removeIf(boolPin -> this.outputPins.contains(boolPin.getPin()));
             this.outputPins = new HashSet<>(outputPins);
             for (Pin pin : outputPins) {
                 allPinsValues.add(BoolPin.ofValue(pin, true));
@@ -248,10 +228,10 @@ public class MooreMachine {
          * @return a pin with the specified name or null if not found
          */
         public Pin getOutputPinOfName(String name) {
-            for (Pin pin : outputPins) {
-                if (pin.getName().equals(name)) return pin;
-            }
-            return null;
+            Optional<Pin> optional = outputPins.stream()
+                    .filter(pin -> pin.getName().equals(name))
+                    .findFirst();
+            return optional.isPresent() ? optional.get() : null;
         }
 
         /**
@@ -271,10 +251,10 @@ public class MooreMachine {
          */
         public Builder addOutputPin(Pin outputPin) {
             Utils.verifyNullity(NAME_TAG + "#addOutputPin", "outputPin", outputPin);
-            if (hasOutputPin(outputPin) || hasInputPin(outputPin)) {
-                throw new IllegalArgumentException(NAME_TAG + "#addOutputPin: " +
-                        outputPin + " already on the set!");
-            }
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#addOutputPin", "outputPin", outputPin,
+                    "pins of this builder",
+                    Stream.concat(inputPins.stream(), outputPins.stream())
+                            .collect(Collectors.toSet()), false);
             allPinsValues.add(BoolPin.ofValue(outputPin, true));
             allPinsValues.add(BoolPin.ofValue(outputPin, false));
             outputPins.add(outputPin);
@@ -291,12 +271,9 @@ public class MooreMachine {
          */
         public Builder removeOutputPin(Pin outputPin) {
             Utils.verifyNullity(NAME_TAG + "#removeOutputPin", "outputPin", outputPin);
-            if (!hasOutputPin(outputPin)) {
-                throw new IllegalArgumentException(NAME_TAG + "#removeOutputPin: " +
-                        outputPin + " was not on the set!");
-            }
-            allPinsValues.remove(getBoolPinOfValue(outputPin, true));
-            allPinsValues.remove(getBoolPinOfValue(outputPin, false));
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#removeOutputPin", "outputPin", outputPin,
+                    "outputPins of this builder", outputPins, true);
+            allPinsValues.removeIf(boolPin -> boolPin.getPin().equals(outputPin));
             outputPins.remove(outputPin);
             return this;
         }
@@ -314,18 +291,14 @@ public class MooreMachine {
          */
         public BoolPin getBoolPinOfValue(Pin pin, boolean high) {
             Utils.verifyNullity(NAME_TAG + "#getBoolPinOfValue", "pin", pin);
-            if (!hasInputPin(pin) && !hasOutputPin(pin)) {
-                throw new IllegalArgumentException(NAME_TAG + "#getBoolPinOfValue: " +
-                        pin + " was on neither sets of this builder " + this);
-            }
-            BoolPin boolPinReturned = null;
-            for (BoolPin boolPin : allPinsValues) {
-                if (boolPin.getPin().equals(pin) && boolPin.isHigh() == high) {
-                    boolPinReturned = boolPin;
-                    break;
-                }
-            }
-            return boolPinReturned;
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#getBoolPinOfValue", "pin", pin,
+                    "pins of this builder",
+                    Stream.concat(inputPins.stream(), outputPins.stream())
+                            .collect(Collectors.toSet()), true);
+            Optional<BoolPin> optional = allPinsValues.stream()
+                    .filter(boolPin -> boolPin.getPin().equals(pin) && boolPin.isHigh() == high)
+                    .findFirst();
+            return optional.isPresent() ? optional.get() : null;
         }
 
         /**
@@ -346,23 +319,18 @@ public class MooreMachine {
         public Builder outputs(Set<Output> outputs) {
             Utils.verifyCollectionNullity(NAME_TAG + "#outputs", "outputs", outputs);
             for (Output output : outputs) {
-                if (!hasState(output.getState())) {
-                    throw new IllegalArgumentException(NAME_TAG + "#outputs: " +
-                            "an element of outputs " + outputs +
-                            " contained a state not on this builder " + this);
-                }
-                Set<Pin> pins = new HashSet<>();
-                for (BoolPin boolPin : output.getBoolPins()) {
-                    pins.add(boolPin.getPin());
-                }
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#outputs", "state of an output",
+                        output.getState(), "states of this builder", states, true);
+                Set<Pin> pins = output.getBoolPins().stream()
+                        .map(BoolPin::getPin)
+                        .collect(Collectors.toSet());
                 if (output.getBoolPins().size() != pins.size()) {
                     throw new IllegalArgumentException(NAME_TAG + "#outputs: " +
                             "there is a pin with two values on " + outputs);
                 }
-                if (!outputPins.containsAll(pins)) {
-                    throw new IllegalArgumentException(NAME_TAG + "#outputs: " +
-                            "an element of outputs " + outputs +
-                            " contained at least a Pin not on this builder " + this);
+                for (Pin pin : pins) {
+                    Utils.verifyCollectionIntegrity(NAME_TAG + "#outputs", "pin of a output", pin,
+                            "outputPins of this builder", outputPins, true);
                 }
             }
             this.outputs = new HashSet<>(outputs);
@@ -370,10 +338,9 @@ public class MooreMachine {
         }
 
         public boolean hasOutput(String state) {
-            for (Output output : outputs) {
-                if (output.getState().equals(state)) return true;
-            }
-            return false;
+            return outputs.stream()
+                    .map(Output::getState)
+                    .anyMatch(outputState -> outputState.equals(state));
         }
 
         /**
@@ -391,27 +358,23 @@ public class MooreMachine {
          * @see #hasInputPin
          */
         public Builder addOutput(String state, Set<BoolPin> boolPins) {
-            if (hasOutput(state)) {
-                throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
-                        state + "was already on this builder " + this);
-            }
             Utils.verifyNullity(NAME_TAG + "#addOutput", "state", state);
             Utils.verifyCollectionNullity(NAME_TAG + "#addOutput", "boolPins", boolPins);
-            if (!hasState(state)) {
-                throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
-                        state + "was not on this builder " + this);
-            }
-            Set<Pin> pins = new HashSet<>();
-            for (BoolPin boolPin : boolPins) {
-                pins.add(boolPin.getPin());
-            }
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#outputs", "state", state,
+                    "states of this builder", states, true);
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#addOutput", "state", state,
+                    "states which have output",
+                    outputs.stream().map(Output::getState).collect(Collectors.toSet()), false);
+            Set<Pin> pins = boolPins.stream()
+                    .map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
             if (boolPins.size() != pins.size()) {
                 throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
                         "there is a pin with two values on " + boolPins);
             }
-            if (!outputPins.containsAll(pins)) {
-                throw new IllegalArgumentException(NAME_TAG + "#addOutput: " +
-                        boolPins + " contained at least a Pin not on this builder " + this);
+            for (Pin pin : pins) {
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#addOutput", "pin", pin,
+                        "outputPins of this builder", outputPins, true);
             }
             outputs.add(Output.ofValue(state, boolPins));
             return this;
@@ -428,17 +391,10 @@ public class MooreMachine {
          */
         public Builder removeOutput(String state) {
             Utils.verifyNullity(NAME_TAG + "#removeOutput", "state", state);
-            if (!hasOutput(state)) {
-                throw new IllegalArgumentException(NAME_TAG + "#removeOutput: " +
-                        state + "was not on this builder " + this);
-            }
-            for (Iterator<Output> iterator = outputs.iterator(); iterator.hasNext(); ) {
-                Output output = iterator.next();
-                if (output.getState().equals(state)) {
-                    iterator.remove();
-                    break;
-                }
-            }
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#removeOutput", "state", state,
+                    "states which have output",
+                    outputs.stream().map(Output::getState).collect(Collectors.toSet()), true);
+            outputs.removeIf(output -> output.getState().equals(state));
             return this;
         }
 

@@ -46,7 +46,7 @@ public class Utils {
      * @throws NullPointerException if the generic passed is null
      */
     public static <T> void verifyNullity(String tag, String name, T t) {
-        if (t == null) throw new NullPointerException(tag + ": " + name + "was null!");
+        if (t == null) throw new NullPointerException(tag + ": " + name + " was null!");
     }
 
     /**
@@ -58,5 +58,30 @@ public class Utils {
      */
     public static <T> void verifyNullity(T t) {
         verifyNullity("", "object", t);
+    }
+
+    /**
+     * Verify the integrity of a collection, mainly verifying if a element is or is not on the
+     * collection, if it should be and it isn't an {@link IllegalArgumentException} is thrown, the
+     * opposite also throws the exception
+     *
+     * @param tag Tag of the exception message
+     * @param comparedName name of the element to be verified
+     * @param compared the element to be verified
+     * @param collectionName name of the collection being verified
+     * @param collection the collection being verified
+     * @param shouldContain if the colletion should be contaning the element or not
+     * @throws IllegalArgumentException if the element should be in the collection and it isn't or
+     * the opposite
+     */
+    public static <T> void verifyCollectionIntegrity(String tag,
+                                                     String comparedName,
+                                                     T compared, String collectionName,
+                                                     Collection<? extends T> collection,
+                                                     boolean shouldContain) {
+        if (collection.contains(compared) != shouldContain) {
+            throw new IllegalArgumentException(tag + ": " + comparedName + " " + compared + " was "
+                    + (shouldContain ? "not " : "") + "on " + collectionName + " " + collection);
+        }
     }
 }
