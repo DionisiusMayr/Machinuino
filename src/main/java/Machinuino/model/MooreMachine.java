@@ -5,6 +5,7 @@ import Machinuino.Utils;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -376,6 +377,8 @@ public class MooreMachine {
         public Builder transitions(Set<Transition> transitions) {
             Utils.verifyCollectionNullity(NAME_TAG + "#transitions", "transitions", transitions);
             for (Transition transition : transitions) {
+                Utils.verifyCollectionNullity(NAME_TAG + "#transitions", "transitionPins",
+                        transition.getInput());
                 Utils.verifyCollectionIntegrity(NAME_TAG + "#transitions",
                         "previous state of a transition", transition.getPreviousState(),
                         "states of this builder", states, true);
@@ -400,6 +403,107 @@ public class MooreMachine {
         }
 
         /**
+         * Checks if there is a somewhat equivalent transition on this builder compared to the
+         * one passed, two transition are considered equivalent if they have the same previous
+         * and next state and their pins are the same
+         *
+         * @param transition transition used to check
+         * @return true, if there is a transition on this builder somewhat equivalent to the one
+         * passed, false otherwise
+         * @throws IllegalArgumentException if transition has the same pin with two values
+         */
+        public boolean hasEquivalentTransition(Transition transition) {
+            Utils.verifyNullity(NAME_TAG + "#hasEquivalentTransition", "transition", transition);
+            Utils.verifyCollectionNullity(NAME_TAG + "#hasEquivalentTransition",
+                    "transitionPins", transition.getInput());
+            Set<BoolPin> transitionBoolPins = transition.getInput();
+            Set<Pin> pins = transitionBoolPins.stream()
+                    .map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
+            if (transitionBoolPins.size() != pins.size()) {
+                throw new IllegalArgumentException(NAME_TAG + "#hasEquivalentTransition: " +
+                        "there is a pin with two values on " + transition);
+            }
+            return transitions.stream().anyMatch(equivalentTransition(transition));
+        }
+
+        /**
+         * Adds a transition to the machine
+         *
+         * @param transition the transition to be added
+         * @return this Builder
+         * @throws IllegalArgumentException if the pins of the transition have duplicate values or
+         * the pins are not on this builder or trying to add a equivalent transition to this builder
+         * @see #hasEquivalentTransition
+         */
+        public Builder addTransition(Transition transition) {
+            Utils.verifyNullity(NAME_TAG + "#addTransition", "transition", transition);
+            Utils.verifyCollectionNullity(NAME_TAG + "#addTransition", "transitionPins",
+                    transition.getInput());
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#addTransition",
+                    "previous state of a transition", transition.getPreviousState(),
+                    "states of this builder", states, true);
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#addTransition",
+                    "next state of a transition", transition.getNextState(),
+                    "states of this builder", states, true);
+            Set<Pin> pins = transition.getInput().stream()
+                    .map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
+            if (transition.getInput().size() != pins.size()) {
+                throw new IllegalArgumentException(NAME_TAG + "#addTransition: " +
+                        "there is a pin with two values on " + transition);
+            }
+            for (Pin pin : pins) {
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#addTransition",
+                        "pin of a transition", pin,
+                        "inputPins of this builder", inputPins, true);
+            }
+            if (hasEquivalentTransition(transition)) {
+                throw new IllegalArgumentException(NAME_TAG + "#addTransition: " +
+                        "there is already a transition on the same pins as " + transition +
+                        "on this builder " + transitions);
+            }
+            this.transitions.add(transition);
+            return this;
+        }
+
+        /**
+         * Removes a transition from the machine
+         *
+         * @param transition a transition equivalent to the one to be removed
+         * @return this builder
+         * @throws IllegalArgumentException if the transition passed is not equivalent to any
+         * transition on this machine
+         * @see #hasEquivalentTransition
+         */
+        public Builder removeEquivalentTransition(Transition transition) {
+            Utils.verifyNullity(NAME_TAG + "#addTransition", "transition", transition);
+            Utils.verifyCollectionNullity(NAME_TAG + "#addTransition", "transitionPins",
+                    transition.getInput());
+            if (!hasEquivalentTransition(transition)) {
+                throw new IllegalArgumentException(NAME_TAG + "#removeEquivalentTransition: " +
+                        "there is no transition on the same pins as " + transition +
+                        "on this builder " + transitions);
+            }
+            transitions.removeIf(equivalentTransition(transition));
+            return this;
+        }
+
+        private Predicate<Transition> equivalentTransition(Transition transition) {
+            return onBuilder -> {
+                Set<Pin> onBuilderPins = onBuilder.getInput().stream()
+                        .map(BoolPin::getPin)
+                        .collect(Collectors.toSet());
+                Set<Pin> transitionPins = transition.getInput().stream()
+                        .map(BoolPin::getPin)
+                        .collect(Collectors.toSet());
+                return onBuilder.getPreviousState().equals(transition.getPreviousState())
+                        && onBuilder.getNextState().equals(transition.getNextState())
+                        && onBuilderPins.equals(transitionPins);
+            };
+        }
+
+        /**
          * Sets the outputs of this machine, preferably use this method after setting all the
          * states and pins of the machine, as this method will check the set of states and pins
          * before setting the outputs
@@ -417,6 +521,8 @@ public class MooreMachine {
         public Builder outputs(Set<Output> outputs) {
             Utils.verifyCollectionNullity(NAME_TAG + "#outputs", "outputs", outputs);
             for (Output output : outputs) {
+                Utils.verifyCollectionNullity(NAME_TAG + "#outputs", "outputsPins",
+                        output.getBoolPins());
                 Utils.verifyCollectionIntegrity(NAME_TAG + "#outputs", "state of an output",
                         output.getState(), "states of this builder", states, true);
                 Set<Pin> pins = output.getBoolPins().stream()
