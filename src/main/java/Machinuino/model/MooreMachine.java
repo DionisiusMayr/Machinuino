@@ -15,6 +15,7 @@ public class MooreMachine {
     private Set<String> states;
     private Set<Pin> inputPins;
     private Set<Pin> outputPins;
+    private Set<Transition> transitions;
     private Set<Output> outputs;
     private Set<BoolPin> allPinsValues;
 
@@ -30,6 +31,7 @@ public class MooreMachine {
         private Set<String> states;
         private Set<Pin> inputPins;
         private Set<Pin> outputPins;
+        private Set<Transition> transitions;
         private Set<Output> outputs;
         private Set<BoolPin> allPinsValues;
 
@@ -40,6 +42,7 @@ public class MooreMachine {
             this.states = new HashSet<>();
             this.inputPins = new HashSet<>();
             this.outputPins = new HashSet<>();
+            this.transitions = new HashSet<>();
             this.outputs = new HashSet<>();
             this.allPinsValues = new HashSet<>();
         }
@@ -50,6 +53,7 @@ public class MooreMachine {
             this.states = new HashSet<>(builder.states);
             this.inputPins = new HashSet<>(builder.inputPins);
             this.outputPins = new HashSet<>(builder.outputPins);
+            this.transitions = new HashSet<>(builder.transitions);
             this.outputs = new HashSet<>(builder.outputs);
             this.allPinsValues = new HashSet<>(builder.allPinsValues);
         }
@@ -80,8 +84,8 @@ public class MooreMachine {
          *
          * @param states states of the machine
          * @return this builder
-         * @throws IllegalArgumentException if there is output for a state of this machine not
-         * on the parameter passed
+         * @throws IllegalArgumentException if there is output or a transition envolving a state
+         * of this machine not on the parameter passed
          */
         public Builder states(Set<String> states) {
             Utils.verifyCollectionNullity(NAME_TAG + "#states", "states", states);
@@ -89,6 +93,14 @@ public class MooreMachine {
                     outputs.stream().map(Output::getState).collect(Collectors.toSet())) {
                 Utils.verifyCollectionIntegrity(NAME_TAG + "#states", "state of an output of this" +
                         "builder", state, "states", states, true);
+            }
+            Set<String> transitionStates = Stream.concat(
+                    transitions.stream().map(Transition::getPreviousState),
+                    transitions.stream().map(Transition::getNextState))
+                    .collect(Collectors.toSet());
+            for (String state : transitionStates) {
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#states", "state involving a transition"
+                        + "on this builder", state, "states", states, true);
             }
             this.states = new HashSet<>(states);
             return this;
@@ -119,7 +131,7 @@ public class MooreMachine {
          * @param state a state already on this machine, can not be null
          * @return this builder
          * @throws IllegalArgumentException if the state passed is not on this machine or if this
-         * machine has a output on the state passed
+         * machine has a output or a transition involving the state passed
          * @see #hasState
          * @see #hasOutput
          */
@@ -130,15 +142,41 @@ public class MooreMachine {
             Utils.verifyCollectionIntegrity(NAME_TAG + "#removeState", "state", state,
                     "states which have output",
                     outputs.stream().map(Output::getState).collect(Collectors.toSet()), false);
+            Set<String> transitionStates = Stream.concat(
+                    transitions.stream().map(Transition::getPreviousState),
+                    transitions.stream().map(Transition::getNextState))
+                    .collect(Collectors.toSet());
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#removeState", "state", state,
+                    "states involving a transition", transitionStates, false);
             states.remove(state);
             return this;
         }
 
+        /**
+         * Sets the input pins of the machine, preferably this method setting the pins should be
+         * the one of the first things to be done as setting the input pins enable setting the
+         * transitions
+         *
+         * @param inputPins the input pins of the machine
+         * @return this builder
+         * @throws IllegalArgumentException if any of the pins are already in outputPins or if
+         * there is at least a pin not on the set passed which is involved in a transition
+         * @see #hasOutputPin
+         */
         public Builder inputPins(Set<Pin> inputPins) {
             Utils.verifyCollectionNullity(NAME_TAG + "#inputPins", "inputPins", inputPins);
             for (Pin pin : inputPins) {
                 Utils.verifyCollectionIntegrity(NAME_TAG + "#inputPins", "inputPin", pin,
                         "outputPins of this builder", outputPins, false);
+            }
+            Set<Pin> transitionPins = transitions.stream()
+                    .flatMap(transition -> transition.getInput().stream())
+                    .map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
+            for (Pin pin : transitionPins) {
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#inputPins",
+                        "inputPin involving a transition", pin,
+                        "inputPins of this builder", inputPins, true);
             }
             allPinsValues.removeIf(boolPin -> this.inputPins.contains(boolPin.getPin()));
             this.inputPins = new HashSet<>(inputPins);
@@ -194,23 +232,50 @@ public class MooreMachine {
          *
          * @param inputPin a pin already on this machine
          * @return this builder
-         * @throws IllegalArgumentException if the pin passed is not on this machine
+         * @throws IllegalArgumentException if the pin passed is not on this machine or if the pin
+         * is involved in a transition
          * @see #hasInputPin
          */
         public Builder removeInputPin(Pin inputPin) {
             Utils.verifyNullity(NAME_TAG + "#removeInputPin", "inputPin", inputPin);
             Utils.verifyCollectionIntegrity(NAME_TAG + "#removeInputPin", "inputPin", inputPin,
                     "inputPins of this builder", inputPins, true);
+            Set<Pin> transitionPins = transitions.stream()
+                    .flatMap(transition -> transition.getInput().stream())
+                    .map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#inputPins", "inputPin", inputPin,
+                    "inputPin involving a transition", transitionPins, false);
             allPinsValues.removeIf(boolPin -> boolPin.getPin().equals(inputPin));
             inputPins.remove(inputPin);
             return this;
         }
 
+        /**
+         * Sets the output pins of the machine, preferably this method setting the pins should be
+         * the one of the first things to be done as setting the output pins enable setting the
+         * outputs
+         *
+         * @param outputPins the output pins of the machine
+         * @return this builder
+         * @throws IllegalArgumentException if any of the pins are already in inputPins or if
+         * there is at least a pin not on the set passed which is involved in a output
+         * @see #hasInputPin
+         */
         public Builder outputPins(Set<Pin> outputPins) {
             Utils.verifyCollectionNullity(NAME_TAG + "#outputPins", "outputPins", outputPins);
             for (Pin pin : outputPins) {
                 Utils.verifyCollectionIntegrity(NAME_TAG + "#outputPins", "outputPin", pin,
                         "inputPins of this builder", inputPins, false);
+            }
+            Set<Pin> outputs = this.outputs.stream()
+                    .flatMap(output -> output.getBoolPins().stream())
+                    .map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
+            for (Pin pin : outputs) {
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#outputPins",
+                        "outputPin involved in a Output", pin,
+                        "outputPins", outputPins, true);
             }
             allPinsValues.removeIf(boolPin -> this.outputPins.contains(boolPin.getPin()));
             this.outputPins = new HashSet<>(outputPins);
@@ -266,13 +331,20 @@ public class MooreMachine {
          *
          * @param outputPin a pin already on this machine
          * @return this builder
-         * @throws IllegalArgumentException if the pin passed is not on this machine
+         * @throws IllegalArgumentException if the pin passed is not on this machine or if the pin
+         * if involved in a Output
          * @see #hasOutputPin
          */
         public Builder removeOutputPin(Pin outputPin) {
             Utils.verifyNullity(NAME_TAG + "#removeOutputPin", "outputPin", outputPin);
             Utils.verifyCollectionIntegrity(NAME_TAG + "#removeOutputPin", "outputPin", outputPin,
                     "outputPins of this builder", outputPins, true);
+            Set<Pin> outputs = this.outputs.stream()
+                    .flatMap(output -> output.getBoolPins().stream())
+                    .map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
+            Utils.verifyCollectionIntegrity(NAME_TAG + "#outputPins", "outputPin", outputPin,
+                    "outputPins involved in a Output", outputs, false);
             allPinsValues.removeIf(boolPin -> boolPin.getPin().equals(outputPin));
             outputPins.remove(outputPin);
             return this;
@@ -299,6 +371,32 @@ public class MooreMachine {
                     .filter(boolPin -> boolPin.getPin().equals(pin) && boolPin.isHigh() == high)
                     .findFirst();
             return optional.isPresent() ? optional.get() : null;
+        }
+
+        public Builder transitions(Set<Transition> transitions) {
+            Utils.verifyCollectionNullity(NAME_TAG + "#transitions", "transitions", transitions);
+            for (Transition transition : transitions) {
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#transitions",
+                        "previous state of a transition", transition.getPreviousState(),
+                        "states of this builder", states, true);
+                Utils.verifyCollectionIntegrity(NAME_TAG + "#transitions",
+                        "next state of a transition", transition.getNextState(),
+                        "states of this builder", states, true);
+                Set<Pin> pins = transition.getInput().stream()
+                        .map(BoolPin::getPin)
+                        .collect(Collectors.toSet());
+                if (transition.getInput().size() != pins.size()) {
+                    throw new IllegalArgumentException(NAME_TAG + "#transitions: " +
+                            "there is a pin with two values on " + transition);
+                }
+                for (Pin pin : pins) {
+                    Utils.verifyCollectionIntegrity(NAME_TAG + "#transitions",
+                            "pin of a transition", pin,
+                            "inputPins of this builder", inputPins, true);
+                }
+            }
+            this.transitions = new HashSet<>(transitions);
+            return this;
         }
 
         /**
@@ -415,6 +513,7 @@ public class MooreMachine {
                     ", states=" + states +
                     ", inputPins=" + inputPins +
                     ", outputPins=" + outputPins +
+                    ", transitions=" + transitions +
                     ", outputs=" + outputs +
                     ", allPinsValues=" + allPinsValues +
                     '}';
@@ -427,6 +526,7 @@ public class MooreMachine {
         this.states = new HashSet<>(builder.states);
         this.inputPins = new HashSet<>(builder.inputPins);
         this.outputPins = new HashSet<>(builder.outputPins);
+        this.transitions = new HashSet<>(builder.transitions);
         this.outputs = new HashSet<>(builder.outputs);
         this.allPinsValues = new HashSet<>(builder.allPinsValues);
     }
@@ -451,6 +551,10 @@ public class MooreMachine {
         return new HashSet<>(outputPins);
     }
 
+    public Set<Transition> getTransitions() {
+        return new HashSet<>(transitions);
+    }
+
     public Set<Output> getOutputs() {
         return new HashSet<>(outputs);
     }
@@ -468,7 +572,8 @@ public class MooreMachine {
         MooreMachine machine = (MooreMachine) o;
         return name.equals(machine.name) && initialState.equals(machine.initialState) &&
                 states.equals(machine.states) && inputPins.equals(machine.inputPins) &&
-                outputPins.equals(machine.outputPins) && outputs.equals(machine.outputs);
+                transitions.equals(machine.transitions) && outputPins.equals(machine.outputPins) &&
+                outputs.equals(machine.outputs);
     }
 
     @Override
@@ -478,6 +583,7 @@ public class MooreMachine {
         result = 31 * result + states.hashCode();
         result = 31 * result + inputPins.hashCode();
         result = 31 * result + outputPins.hashCode();
+        result = 31 * result + transitions.hashCode();
         result = 31 * result + outputs.hashCode();
         return result;
     }
@@ -490,6 +596,7 @@ public class MooreMachine {
                 ", states=" + states +
                 ", inputPins=" + inputPins +
                 ", outputPins=" + outputPins +
+                ", transitions=" + transitions +
                 ", outputs=" + outputs +
                 '}';
     }

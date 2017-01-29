@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MooreMachineTest {
 
@@ -29,6 +31,10 @@ public class MooreMachineTest {
         set1.add(defaultBuilder.getBoolPinOfValue(defaultBuilder.getOutputPinOfName("led"), false));
         set1.add(defaultBuilder.getBoolPinOfValue(defaultBuilder.getOutputPinOfName("lmao"), true));
         defaultBuilder.addOutput("q0", set1);
+        Set<BoolPin> inp = new HashSet<>();
+        inp.add(defaultBuilder.getBoolPinOfValue(defaultBuilder.getInputPinOfName("clock"), true));
+        Transition transition = Transition.ofValue("q0", "q1", inp);
+        defaultBuilder.transitions(Stream.of(transition).collect(Collectors.toSet()));
     }
 
     @Test(expected = NullPointerException.class)
@@ -82,20 +88,30 @@ public class MooreMachineTest {
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("haha"), true));
         builder.addOutput("q0", boolPins);
-        builder.states(new HashSet<String>());
+        builder.states(new HashSet<>());
     }
 
-    @Test
-    public void builderSetStates() {
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetStatesNotOnTransitionShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
         Set<String> strings = new HashSet<>();
         strings.add("q0");
         strings.add("q1");
         builder.states(strings);
-        builder.addOutputPin(Pin.ofValue("led", 3));
-        Set<BoolPin> set = new HashSet<>();
-        set.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("led"), true));
-        builder.addOutput("q1", set);
+        builder.addInputPin(Pin.ofValue("haha", 1));
+        Set<BoolPin> boolPins = new HashSet<>();
+        boolPins.add(builder.getBoolPinOfValue(builder.getInputPinOfName("haha"), true));
+        Transition transition = Transition.ofValue("q0", "q1,", boolPins);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
+        builder.states(new HashSet<>());
+    }
+
+    @Test
+    public void builderSetStates() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Set<String> strings = new HashSet<>();
+        strings.add("q0");
+        strings.add("q1");
         builder.states(strings);
         MooreMachine machine = builder.build();
         Assert.assertEquals(strings, machine.getStates());
@@ -157,6 +173,19 @@ public class MooreMachineTest {
         builder.removeState("q0");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void builderRemoveStateWhichInvolvesTransitionOnShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
+        builder.addState("q0");
+        builder.addState("q1");
+        builder.addInputPin(Pin.ofValue("haha", 1));
+        Set<BoolPin> boolPins = new HashSet<>();
+        boolPins.add(builder.getBoolPinOfValue(builder.getInputPinOfName("haha"), true));
+        Transition transition = Transition.ofValue("q0", "q1,", boolPins);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
+        builder.removeState("q0");
+    }
+
     @Test
     public void builderRemoveState() {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
@@ -189,11 +218,24 @@ public class MooreMachineTest {
         builder.inputPins(pins);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetInputPinsWithPinNotOnTransitionShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Set<Pin> pins = Stream.of(Pin.ofValue("button", 1)).collect(Collectors.toSet());
+        builder.inputPins(pins);
+    }
+
     @Test
     public void builderSetInputPins() {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
+        builder.addState("q0").addState("q1");
         Set<Pin> pins = new HashSet<>();
         pins.add(Pin.ofValue("haha", 1));
+        builder.inputPins(pins);
+        Set<BoolPin> input = new HashSet<>();
+        input.add(BoolPin.ofValue(Pin.ofValue("haha", 1), true));
+        Transition transition = Transition.ofValue("q0", "q0", input);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
         builder.inputPins(pins);
         MooreMachine machine = builder.build();
         Assert.assertEquals(pins, machine.getInputPins());
@@ -290,6 +332,12 @@ public class MooreMachineTest {
         builder.removeInputPin(Pin.ofValue("haha", 1));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void builderRemoveInputInvolvedInTransitionShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        builder.removeInputPin(builder.getInputPinOfName("clock"));
+    }
+
     @Test
     public void builderRemoveInputPin() {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
@@ -326,17 +374,26 @@ public class MooreMachineTest {
         builder.outputPins(pins);
     }
 
-    @Test
-    public void builderSetOutputPins() {
-        MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetOutputPinsWithPinNotOnOutputShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<Pin> pins = new HashSet<>();
         pins.add(Pin.ofValue("haha", 1));
+        builder.outputPins(pins);
+    }
+
+    @Test
+    public void builderSetOutputPins() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        Set<Pin> pins = new HashSet<>();
+        pins.add(Pin.ofValue("led", 3));
+        pins.add(Pin.ofValue("lmao", 4));
         builder.outputPins(pins);
         MooreMachine machine = builder.build();
         Assert.assertEquals(pins, machine.getOutputPins());
         Set<BoolPin> boolPins = new HashSet<>();
-        boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("haha"), true));
-        boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("haha"), false));
+        boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("lmao"), true));
+        boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("led"), false));
         Assert.assertTrue(machine.getAllPinsValues().containsAll(boolPins));
     }
 
@@ -427,6 +484,12 @@ public class MooreMachineTest {
         builder.removeOutputPin(Pin.ofValue("haha", 1));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void builderRemoveOutputPinInvolvedInOutputShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        builder.removeOutputPin(Pin.ofValue("led", 3));
+    }
+
     @Test
     public void builderRemoveOutputPin() {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
@@ -462,6 +525,68 @@ public class MooreMachineTest {
                 BoolPin.ofValue(Pin.ofValue("haha", 1), true));
         Assert.assertEquals(builder.getBoolPinOfValue(Pin.ofValue("haha", 1), false),
                 BoolPin.ofValue(Pin.ofValue("haha", 1), false));
+    }
+
+    /* Transition Tests */
+    @Test(expected = NullPointerException.class)
+    public void builderSetNullTransitionsShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        builder.transitions(null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void builderSetTransitionsWithNullTransitionShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        builder.transitions(Stream.of((Transition) null).collect(Collectors.toSet()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetTransitionsWithPreviousStateNotOnTheBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        BoolPin boolPin = builder.getBoolPinOfValue(builder.getInputPinOfName("button"), true);
+        Set<BoolPin> boolPins = Stream.of(boolPin).collect(Collectors.toSet());
+        Transition transition = Transition.ofValue("limao", "q1", boolPins);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetTransitionsWithNextStateNotOnTheBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        BoolPin boolPin = builder.getBoolPinOfValue(builder.getInputPinOfName("button"), true);
+        Set<BoolPin> boolPins = Stream.of(boolPin).collect(Collectors.toSet());
+        Transition transition = Transition.ofValue("q0", "limao", boolPins);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetTransitionsWithPinWithTwoValuesShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        BoolPin boolPin = builder.getBoolPinOfValue(builder.getInputPinOfName("button"), true);
+        BoolPin boolPin1 = builder.getBoolPinOfValue(builder.getInputPinOfName("button"), false);
+        Set<BoolPin> boolPins = Stream.of(boolPin, boolPin1).collect(Collectors.toSet());
+        Transition transition = Transition.ofValue("q0", "q1", boolPins);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void builderSetTransitionsWithPinNotOnTheBuilderShouldThrowException() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        BoolPin boolPin = BoolPin.ofValue(Pin.ofValue("limao", 50), true);
+        BoolPin boolPin1 = builder.getBoolPinOfValue(builder.getInputPinOfName("button"), false);
+        Set<BoolPin> boolPins = Stream.of(boolPin, boolPin1).collect(Collectors.toSet());
+        Transition transition = Transition.ofValue("q0", "limao", boolPins);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void builderSetTransitions() {
+        MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
+        BoolPin boolPin = builder.getBoolPinOfValue(builder.getInputPinOfName("button"), false);
+        Set<BoolPin> boolPins = Stream.of(boolPin).collect(Collectors.toSet());
+        Transition transition = Transition.ofValue("q0", "q1", boolPins);
+        builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
+        MooreMachine machine = builder.build();
+        Assert.assertTrue(machine.getTransitions().contains(transition));
     }
 
     /* Output tests */
@@ -733,16 +858,23 @@ public class MooreMachineTest {
         Set<Pin> outputPins = new HashSet<>();
         outputPins.add(Pin.ofValue("output", 2));
 
+        Set<BoolPin> transitionPins = new HashSet<>();
+        transitionPins.add(BoolPin.ofValue(Pin.ofValue("input", 1), false));
+
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("output", 2), true));
 
         Set<Output> outputs = new HashSet<>();
         outputs.add(Output.ofValue("q0", boolPins));
 
+        Set<Transition> transitions = new HashSet<>();
+        transitions.add(Transition.ofValue("q0", "q1", transitionPins));
+
         builder.states(states);
         builder.initialState("q0");
         builder.inputPins(inputPins);
         builder.outputPins(outputPins);
+        builder.transitions(transitions);
         builder.outputs(outputs);
 
         MooreMachine mooreMachine = builder.build();
@@ -752,6 +884,7 @@ public class MooreMachineTest {
         Assert.assertEquals(mooreMachine.getStates(), states);
         Assert.assertEquals(mooreMachine.getInputPins(), inputPins);
         Assert.assertEquals(mooreMachine.getOutputPins(), outputPins);
+        Assert.assertEquals(mooreMachine.getTransitions(), transitions);
         Assert.assertEquals(mooreMachine.getOutputs(), outputs);
     }
 
@@ -769,16 +902,23 @@ public class MooreMachineTest {
         Set<Pin> outputPins = new HashSet<>();
         outputPins.add(Pin.ofValue("output", 2));
 
+        Set<BoolPin> transitionPins = new HashSet<>();
+        transitionPins.add(BoolPin.ofValue(Pin.ofValue("input", 1), false));
+
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("output", 2), true));
 
         Set<Output> outputs = new HashSet<>();
         outputs.add(Output.ofValue("q0", boolPins));
 
+        Set<Transition> transitions = new HashSet<>();
+        transitions.add(Transition.ofValue("q0", "q1", transitionPins));
+
         builder.states(states);
         builder.initialState("q0");
         builder.inputPins(inputPins);
         builder.outputPins(outputPins);
+        builder.transitions(transitions);
         builder.outputs(outputs);
 
         Set<BoolPin> boolPins1 = new HashSet<>();
@@ -790,7 +930,8 @@ public class MooreMachineTest {
         Assert.assertEquals(builder.toString(), "Builder{" +
                 "name='" + "M1" + "\', initialState='" + "q0" +
                 "\', states=" + states + ", inputPins=" + inputPins + ", outputPins=" + outputPins +
-                ", outputs=" + outputs + ", allPinsValues=" + boolPins1 + '}');
+                ", transitions=" + transitions + ", outputs=" + outputs +
+                ", allPinsValues=" + boolPins1 + '}');
     }
 
     @Test
@@ -824,10 +965,11 @@ public class MooreMachineTest {
         Set<String> states = machine.getStates();
         Set<Pin> inputPins = machine.getInputPins();
         Set<Pin> outputPins = machine.getOutputPins();
+        Set<Transition> transitions = machine.getTransitions();
         Set<Output> outputs = machine.getOutputs();
         Assert.assertEquals(machine.toString(), "MooreMachine{" +
                 "name='" + machine.getName() + "\', initialState='" + machine.getInitialState() +
                 "\', states=" + states + ", inputPins=" + inputPins + ", outputPins=" + outputPins +
-                ", outputs=" + outputs + '}');
+                ", transitions=" + transitions + ", outputs=" + outputs + '}');
     }
 }
