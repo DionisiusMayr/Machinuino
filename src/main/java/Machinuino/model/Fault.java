@@ -1,7 +1,6 @@
 package Machinuino.model;
 
 import Machinuino.Utils;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,15 +11,6 @@ public class Fault {
     private static final String NAME_TAG = "Fault";
     private List<String> errors;
     private List<String> warnings;
-
-
-    //TODO remove
-    /**
-     * getLine:    return the line of the context
-     */
-    private <T extends ParserRuleContext> int getLine(T ctx) {
-        return ctx.getStart().getLine();
-    }
 
     private Fault(List<String> errors, List<String> warnings) {
         if (errors == null) throw new NullPointerException(NAME_TAG +
@@ -47,20 +37,40 @@ public class Fault {
             errors.add(error);
     }
 
-    public void addDuplicatePin(String pinName, int line) {
-        Utils.verifyNullity(NAME_TAG + "#addDuplicatePin", "pinName", pinName);
-
-        if (line < 0) {
-            throw new IllegalArgumentException(NAME_TAG +
-                    "#addDuplicatePin: Negative line number!");
-        }
+    public void addErrorDuplicatePin(String pinName, int line) {
+        Utils.verifyNullity(NAME_TAG + "#addErrorDuplicatePin", "pinName", pinName);
+        Utils.verifyPositive(NAME_TAG + "#addErrorDuplicatePin", "line", line);
 
         this.addError(line + ": Duplicate pin " + pinName + "." + System.lineSeparator());
     }
 
+    public void addErrorUndeclaredState(String state, int line) {
+        Utils.verifyNullity(NAME_TAG + "#addErrorStateUndeclared", "state", state);
+        Utils.verifyPositive(NAME_TAG + "#addErrorStateUndeclared", "line", line);
+
+        errors.add(line + ": State " + state + " undeclared." + System.lineSeparator());
+    }
+
+    public void addErrorUndeclaredInputPin(String pinName, int line) {
+        Utils.verifyNullity(NAME_TAG + "#addErrorUndeclaredPin", "Pin name", pinName);
+        Utils.verifyPositive(NAME_TAG + "#addErrorUndeclaredPin", "line", line);
+
+        errors.add(line + ": Input Pin " + pinName + " undeclared." + System.lineSeparator());
+    }
+
+    public void addErrorUndeclaredOutputPin(String pinName, int line) {
+        Utils.verifyNullity(NAME_TAG + "#addErrorUndeclaredOutputPin", "Pin name", pinName);
+        Utils.verifyPositive(NAME_TAG + "#addErrorUndeclaredOutputPin", "line", line);
+
+        errors.add(line + ": Output Pin " + pinName + " undeclared." + System.lineSeparator());
+    }
+
+    public String getErrors() {
+        return errors.stream().collect(Collectors.joining(""));
+    }
+
     public void addWarning(String warning) {
-        if (warning == null) throw new NullPointerException(NAME_TAG +
-                "#addWarning: Null warning message.");
+        Utils.verifyNullity(NAME_TAG + "#addWarning", "warning message", warning);
 
         if (!warnings.contains(warning))
             warnings.add(warning);
@@ -68,27 +78,17 @@ public class Fault {
 
     public void addWarningDuplicateSymbol(String symbol, int line) {
         Utils.verifyNullity(NAME_TAG + "#addWarningDuplicateSymbol", "symbol", symbol);
-        if (line < 0) throw new IllegalArgumentException(NAME_TAG +
-                "#addWarningDuplicateSymbol: Negative line!");
+        Utils.verifyPositive(NAME_TAG + "#addWarningDuplicateSymbol", "line", line);
 
-        addWarning(line + ": Symbol " + symbol + " already used. Will be ignored." + System.lineSeparator());
+        addWarning(line + ": Symbol " + symbol + " already used. Will be ignored." +
+                System.lineSeparator());
     }
 
     public void addWarningEmptySection(String section, int line) {
-        if (section == null) {
-            throw new NullPointerException(NAME_TAG +
-                    "#addWarningEmptySection: Null section string.");
-        }
-        if (line < 0) {
-            throw new IllegalArgumentException(NAME_TAG +
-                    "#addWarningEmptySection: Negative line number!");
-        }
+        Utils.verifyNullity(NAME_TAG + "#addWarningEmptySection", "section string", section);
+        Utils.verifyPositive(NAME_TAG + "#addWarningEmptySection", "line", line);
 
         addWarning(line + ": Empty \"" + section + "\" section" + System.lineSeparator());
-    }
-
-    public String getErrors() {
-        return errors.stream().collect(Collectors.joining(""));
     }
 
     public String getWarnings() {

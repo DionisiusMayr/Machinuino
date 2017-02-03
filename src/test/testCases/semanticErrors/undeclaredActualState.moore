@@ -1,7 +1,7 @@
 moore M1 {
     /* The first state is also the initial state */
     states {
-        q0, q1, q0, q2
+        q0, q1, q2
     }
 
     input {
@@ -14,7 +14,7 @@ moore M1 {
 
         /* The outer "q0" is the current state, the boolean expression is the symbol of the language and the state after the arrow is the next state. */
         transition {
-            q0 {
+            q3 {
                 button  & switch  -> q1,
                 button  & !switch -> q0,
                 !button & switch  -> q2,

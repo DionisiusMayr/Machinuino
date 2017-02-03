@@ -1,7 +1,7 @@
 moore M1 {
     /* The first state is also the initial state */
     states {
-        q0, q1, q0, q2
+        q0, q1, q2
     }
 
     input {
@@ -17,7 +17,7 @@ moore M1 {
             q0 {
                 button  & switch  -> q1,
                 button  & !switch -> q0,
-                !button & switch  -> q2,
+                !button & errrrr  -> q2,
                 !button & !switch -> q1
             }
 
