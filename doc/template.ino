@@ -31,6 +31,7 @@ void setup() {
     /* Initial state */
     currentState = __q0;
     previousClock = false;
+    output(__q0);
 }
 
 bool isHigh(int pin) {

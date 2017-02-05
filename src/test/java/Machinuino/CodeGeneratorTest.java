@@ -1,6 +1,7 @@
 package Machinuino;
 
 import Machinuino.model.*;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,5 +70,116 @@ public class CodeGeneratorTest {
     public void generateCodeNullMooreMachineShouldThrowException() {
         CodeGenerator codeGenerator = CodeGenerator.getInstance();
         codeGenerator.generateCode(null);
+    }
+
+    @Test
+    public void generateCode() {
+        CodeGenerator codeGenerator = CodeGenerator.getInstance();
+        String lineSeparator = System.lineSeparator();
+        Assert.assertEquals("/* Input */" + lineSeparator +
+                "const int clock = 10;" + lineSeparator +
+                "const int _switch = 12;" + lineSeparator +
+                "const int _button = 11;" + lineSeparator +
+                "" + lineSeparator +
+                "/* Output */" + lineSeparator +
+                "const int _motor = 5;" + lineSeparator +
+                "const int _led = 6;" + lineSeparator +
+                "" + lineSeparator +
+                "/* States */" + lineSeparator +
+                "const int __q1 = 0;" + lineSeparator +
+                "const int __q2 = 1;" + lineSeparator +
+                "const int __q0 = 2;" + lineSeparator +
+                "" + lineSeparator +
+                "bool isHigh(int pin) {" + lineSeparator +
+                "    return digitalRead(pin) == HIGH ? true : false;" + lineSeparator +
+                "}" + lineSeparator +
+                lineSeparator +
+                "int transition(int current) {" + lineSeparator +
+                "    switch(current) {" + lineSeparator +
+                "        case __q1:" + lineSeparator +
+                "            if (!isHigh(_switch) && isHigh(_button)) return __q0;" +
+                lineSeparator +
+                "            if (!isHigh(_button) && isHigh(_switch)) return __q0;" +
+                lineSeparator +
+                "            if (isHigh(_switch) && isHigh(_button)) return __q0;" +
+                lineSeparator +
+                "            if (!isHigh(_button) && !isHigh(_switch)) return __q2;" +
+                lineSeparator +
+                "            break;" + lineSeparator +
+                "        case __q2:" + lineSeparator +
+                "            if (!isHigh(_switch) && isHigh(_button)) return __q1;" +
+                lineSeparator +
+                "            if (!isHigh(_button) && isHigh(_switch)) return __q2;" +
+                lineSeparator +
+                "            if (isHigh(_switch) && isHigh(_button)) return __q1;" +
+                lineSeparator +
+                "            if (!isHigh(_button) && !isHigh(_switch)) return __q2;" +
+                lineSeparator +
+                "            break;" + lineSeparator +
+                "        case __q0:" + lineSeparator +
+                "            if (isHigh(_switch) && isHigh(_button)) return __q1;" +
+                lineSeparator +
+                "            if (!isHigh(_switch) && isHigh(_button)) return __q0;" +
+                lineSeparator +
+                "            if (!isHigh(_button) && isHigh(_switch)) return __q2;" +
+                lineSeparator +
+                "            if (!isHigh(_button) && !isHigh(_switch)) return __q1;" +
+                lineSeparator +
+                "            break;" + lineSeparator +
+                "        default:" + lineSeparator +
+                "            // Not reachable" + lineSeparator +
+                "            exit(1);" + lineSeparator +
+                "            break;" + lineSeparator +
+                "    }" + lineSeparator +
+                "}" + lineSeparator +
+                lineSeparator +
+                "void output(int current) {" + lineSeparator +
+                "    switch(current) {" + lineSeparator +
+                "        case __q1:" + lineSeparator +
+                "            digitalWrite(_led, LOW);" + lineSeparator +
+                "            digitalWrite(_motor, LOW);" + lineSeparator +
+                "            break;" + lineSeparator +
+                "        case __q2:" + lineSeparator +
+                "            digitalWrite(_motor, HIGH);" + lineSeparator +
+                "            digitalWrite(_led, HIGH);" + lineSeparator +
+                "            break;" + lineSeparator +
+                "        case __q0:" + lineSeparator +
+                "            digitalWrite(_led, LOW);" + lineSeparator +
+                "            digitalWrite(_motor, HIGH);" + lineSeparator +
+                "            break;" + lineSeparator +
+                "        default:" + lineSeparator +
+                "            // Not reachable" + lineSeparator +
+                "            exit(1);" + lineSeparator +
+                "            break;" + lineSeparator +
+                "    }" + lineSeparator +
+                "}" + lineSeparator +
+                lineSeparator +
+                "int currentState;" + lineSeparator +
+                "bool previousClock;" + lineSeparator +
+                lineSeparator +
+                "void setup() {" + lineSeparator +
+                "    /* Input */" + lineSeparator +
+                "    pinMode(clock, INPUT);" + lineSeparator +
+                "    pinMode(_switch, INPUT);" + lineSeparator +
+                "    pinMode(_button, INPUT);" + lineSeparator +
+                "" + lineSeparator +
+                "    /* Output */" + lineSeparator +
+                "    pinMode(_motor, OUTPUT);" + lineSeparator +
+                "    pinMode(_led, OUTPUT);" + lineSeparator +
+                lineSeparator +
+                "    /* Initial state */" + lineSeparator +
+                "    currentState = __q0;" + lineSeparator +
+                "    previousClock = false;" + lineSeparator +
+                "    output(__q0);" + lineSeparator +
+                "}" + lineSeparator +
+                lineSeparator +
+                "void loop() {" + lineSeparator +
+                "    if (!previousClock && digitalRead(clock) == HIGH) {" + lineSeparator +
+                "        currentState = transition(currentState);" + lineSeparator +
+                "        output(currentState);" + lineSeparator +
+                "    }" + lineSeparator +
+                lineSeparator +
+                "    previousClock = digitalRead(clock) == HIGH;" + lineSeparator +
+                "}" + lineSeparator, codeGenerator.generateCode(machine));
     }
 }

@@ -29,7 +29,9 @@ public class CodeGenerator {
                 System.lineSeparator() +
                 defineTransitionFunction(machine) +
                 System.lineSeparator() +
-                defineOutputFunction(machine);
+                defineOutputFunction(machine) +
+                System.lineSeparator() +
+                defineLogicVariablesAndFunction(machine);
     }
 
     private String definePinsAndState(MooreMachine machine) {
@@ -234,5 +236,90 @@ public class CodeGenerator {
                 .findFirst();
         // Impossible to this optional not have a value
         return optional.isPresent() ? optional.get() : null;
+    }
+
+    private String defineLogicVariablesAndFunction(MooreMachine machine) {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        builder.append("int currentState;").append(lineSeparator)
+                .append("bool previousClock;").append(lineSeparator)
+                .append(lineSeparator)
+                .append(defineSetupFunction(machine))
+                .append(lineSeparator)
+                .append(defineLoopFunction());
+
+        return builder.toString();
+    }
+
+    private String defineSetupFunction(MooreMachine machine) {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        builder.append("void setup() {").append(lineSeparator)
+                .append(setupInputPins(machine)).append(lineSeparator)
+                .append(setupOutputPins(machine)).append(lineSeparator)
+                .append(setupInitialConditions(machine))
+                .append("}").append(lineSeparator);
+
+        return builder.toString();
+    }
+
+    private String setupInputPins(MooreMachine machine) {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        builder.append("    /* Input */").append(lineSeparator)
+                .append("    pinMode(clock, INPUT);").append(lineSeparator)
+                .append("    ")
+                .append(machine.getInputPins().filter(pin -> !pin.getName().equals("clock"))
+                        .map(this::setupAInputPin)
+                        .collect(Collectors.joining(lineSeparator + "    ")))
+                .append(lineSeparator);
+
+        return builder.toString();
+    }
+
+    private String setupAInputPin(Pin pin) {
+        return "pinMode(" + PIN_START_SYMBOL + pin.getName() + ", INPUT);";
+    }
+
+    private String setupOutputPins(MooreMachine machine) {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        builder.append("    /* Output */").append(lineSeparator)
+                .append("    ")
+                .append(machine.getOutputPins().map(this::setupAOutputPin)
+                        .collect(Collectors.joining(lineSeparator + "    ")))
+                .append(lineSeparator);
+
+        return builder.toString();
+    }
+
+    private String setupAOutputPin(Pin pin) {
+        return "pinMode(" + PIN_START_SYMBOL + pin.getName() + ", OUTPUT);";
+    }
+
+    private String setupInitialConditions(MooreMachine machine) {
+        String lineSeparator = System.lineSeparator();
+        return "    /* Initial state */" + lineSeparator +
+                "    currentState = " + STATE_START_SYMBOL + machine.getInitialState() + ";" +
+                lineSeparator +
+                "    previousClock = false;" + lineSeparator +
+                "    output(" + STATE_START_SYMBOL + machine.getInitialState() + ");" +
+                lineSeparator;
+    }
+
+    private String defineLoopFunction() {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        builder.append("void loop() {").append(lineSeparator)
+                .append("    if (!previousClock && digitalRead(clock) == HIGH) {")
+                .append(lineSeparator)
+                .append("        currentState = transition(currentState);").append(lineSeparator)
+                .append("        output(currentState);").append(lineSeparator)
+                .append("    }").append(lineSeparator)
+                .append(lineSeparator)
+                .append("    previousClock = digitalRead(clock) == HIGH;").append(lineSeparator)
+                .append("}").append(lineSeparator);
+
+        return builder.toString();
     }
 }
