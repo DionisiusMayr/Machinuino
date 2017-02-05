@@ -1,9 +1,6 @@
 package Machinuino;
 
-import Machinuino.model.BoolPin;
-import Machinuino.model.MooreMachine;
-import Machinuino.model.Pin;
-import Machinuino.model.Transition;
+import Machinuino.model.*;
 
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +27,9 @@ public class CodeGenerator {
                 System.lineSeparator() +
                 defineIsHighFunction() +
                 System.lineSeparator() +
-                defineTransitionFunction(machine);
+                defineTransitionFunction(machine) +
+                System.lineSeparator() +
+                defineOutputFunction(machine);
     }
 
     private String definePinsAndState(MooreMachine machine) {
@@ -167,5 +166,73 @@ public class CodeGenerator {
     private String mapBoolPinToIsHigh(BoolPin boolPin) {
         return (boolPin.isHigh() ? "" : "!") + "isHigh(" + PIN_START_SYMBOL +
                 boolPin.getPin().getName() + ")";
+    }
+
+    private String defineOutputFunction(MooreMachine machine) {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        builder.append("void output(int current) {").append(lineSeparator)
+                .append("    switch(current) {").append(lineSeparator)
+                .append(defineOutputOfEachState(machine))
+                .append("        default:").append(lineSeparator)
+                .append("            // Not reachable").append(lineSeparator)
+                .append("            exit(1);").append(lineSeparator)
+                .append("            break;").append(lineSeparator)
+                .append("    }").append(lineSeparator)
+                .append("}").append(lineSeparator);
+
+        return builder.toString();
+    }
+
+    private String defineOutputOfEachState(MooreMachine machine) {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        for (String state : machine.getStates().sorted(String::compareToIgnoreCase)
+                .collect(Collectors.toSet())) {
+            builder.append("        case ")
+                    .append(STATE_START_SYMBOL)
+                    .append(state)
+                    .append(":").append(lineSeparator)
+                    .append(defineOutputOfAState(state, machine))
+                    .append("            break;").append(lineSeparator);
+        }
+
+        return builder.toString();
+    }
+
+    private String defineOutputOfAState(String state, MooreMachine machine) {
+        StringBuilder builder = new StringBuilder();
+        String lineSeparator = System.lineSeparator();
+        Set<Output> outputs = machine.getOutputs()
+                .filter(output -> output.getState().equals(state))
+                .collect(Collectors.toSet());
+        for (Output output : outputs) {
+            builder.append("            ");
+            Set<Pin> outputPinsOnThisOutput = output.getBoolPins().stream().map(BoolPin::getPin)
+                    .collect(Collectors.toSet());
+            String setOutputPins = Stream.concat(
+                    output.getBoolPins().stream(),
+                    machine.getOutputPins().filter(pin -> !outputPinsOnThisOutput.contains(pin))
+                            .map(pin -> pinToFalseBoolPin(pin, machine))
+            ).map(this::mapBoolPinToOutput)
+                    .collect(Collectors.joining(lineSeparator + "            "));
+            builder.append(setOutputPins);
+        }
+        builder.append(lineSeparator);
+        return builder.toString();
+    }
+
+    private String mapBoolPinToOutput(BoolPin boolPin) {
+        return "digitalWrite(" + PIN_START_SYMBOL + boolPin.getPin().getName() + ", " +
+                (boolPin.isHigh() ? "HIGH" : "LOW") + ");";
+    }
+
+    private BoolPin pinToFalseBoolPin(Pin pin, MooreMachine machine) {
+        Optional<BoolPin> optional = machine.getAllPinsValues()
+                .filter(boolPin -> boolPin.getPin().equals(pin))
+                .filter(boolPin -> !boolPin.isHigh())
+                .findFirst();
+        // Impossible to this optional not have a value
+        return optional.isPresent() ? optional.get() : null;
     }
 }
