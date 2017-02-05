@@ -11,8 +11,9 @@ import java.util.stream.Stream;
 public class CodeGenerator {
 
     private static CodeGenerator instance;
-    private static String PIN_START_SYMBOL = "_";
-    private static String STATE_START_SYMBOL = "__";
+    private static final String PIN_START_SYMBOL = "_";
+    private static final String STATE_START_SYMBOL = "__";
+    private static final int INDENTATION_SPACE = 4;
 
     private CodeGenerator() {
     }
@@ -23,22 +24,24 @@ public class CodeGenerator {
     }
 
     public String generateCode(MooreMachine machine) {
+        String lineSeparator = System.lineSeparator();
         return definePinsAndState(machine) +
-                System.lineSeparator() +
+                lineSeparator +
                 defineIsHighFunction() +
-                System.lineSeparator() +
+                lineSeparator +
                 defineTransitionFunction(machine) +
-                System.lineSeparator() +
+                lineSeparator +
                 defineOutputFunction(machine) +
-                System.lineSeparator() +
+                lineSeparator +
                 defineLogicVariablesAndFunction(machine);
     }
 
     private String definePinsAndState(MooreMachine machine) {
+        String lineSeparator = System.lineSeparator();
         return defineInputPins(machine) +
-                System.lineSeparator() +
+                lineSeparator +
                 defineOutputPins(machine) +
-                System.lineSeparator() +
+                lineSeparator +
                 defineStates(machine);
     }
 
@@ -107,9 +110,16 @@ public class CodeGenerator {
         return builder.toString();
     }
 
+    private String indent(int numberOfTabs) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < INDENTATION_SPACE * numberOfTabs; i++) builder.append(" ");
+
+        return builder.toString();
+    }
+
     private String defineIsHighFunction() {
-        return "bool isHigh(int pin) {" + System.lineSeparator() +
-                "    return digitalRead(pin) == HIGH ? true : false;" + System.lineSeparator() +
+        return "bool isHigh(int pin) {" + System.lineSeparator() + indent(1) +
+                "return digitalRead(pin) == HIGH ? true : false;" + System.lineSeparator() +
                 "}" + System.lineSeparator();
     }
 
@@ -117,13 +127,13 @@ public class CodeGenerator {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
         builder.append("int transition(int current) {").append(lineSeparator)
-                .append("    switch(current) {").append(lineSeparator)
+                .append(indent(1)).append("switch(current) {").append(lineSeparator)
                 .append(defineTransitionsOfEachState(machine))
-                .append("        default:").append(lineSeparator)
-                .append("            // Not reachable").append(lineSeparator)
-                .append("            exit(1);").append(lineSeparator)
-                .append("            break;").append(lineSeparator)
-                .append("    }").append(lineSeparator)
+                .append(indent(2)).append("default:").append(lineSeparator)
+                .append(indent(3)).append("// Not reachable").append(lineSeparator)
+                .append(indent(3)).append("exit(1);").append(lineSeparator)
+                .append(indent(3)).append("break;").append(lineSeparator)
+                .append(indent(1)).append("}").append(lineSeparator)
                 .append("}").append(lineSeparator);
 
         return builder.toString();
@@ -134,12 +144,12 @@ public class CodeGenerator {
         String lineSeparator = System.lineSeparator();
         for (String state : machine.getStates().sorted(String::compareToIgnoreCase)
                 .collect(Collectors.toSet())) {
-            builder.append("        case ")
+            builder.append(indent(2)).append("case ")
                     .append(STATE_START_SYMBOL)
                     .append(state)
                     .append(":").append(lineSeparator)
                     .append(defineEachTransitionOfAState(state, machine))
-                    .append("            break;").append(lineSeparator);
+                    .append(indent(3)).append("break;").append(lineSeparator);
         }
 
         return builder.toString();
@@ -152,7 +162,7 @@ public class CodeGenerator {
                 .filter(transition -> transition.getPreviousState().equals(state))
                 .collect(Collectors.toSet());
         for (Transition transition : transitions) {
-            builder.append("            if (");
+            builder.append(indent(3)).append("if (");
             String logicalExpression = transition.getInput().stream()
                     .map(this::mapBoolPinToIsHigh)
                     .collect(Collectors.joining(" && "));
@@ -174,13 +184,13 @@ public class CodeGenerator {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
         builder.append("void output(int current) {").append(lineSeparator)
-                .append("    switch(current) {").append(lineSeparator)
+                .append(indent(1)).append("switch(current) {").append(lineSeparator)
                 .append(defineOutputOfEachState(machine))
-                .append("        default:").append(lineSeparator)
-                .append("            // Not reachable").append(lineSeparator)
-                .append("            exit(1);").append(lineSeparator)
-                .append("            break;").append(lineSeparator)
-                .append("    }").append(lineSeparator)
+                .append(indent(2)).append("default:").append(lineSeparator)
+                .append(indent(3)).append("// Not reachable").append(lineSeparator)
+                .append(indent(3)).append("exit(1);").append(lineSeparator)
+                .append(indent(3)).append("break;").append(lineSeparator)
+                .append(indent(1)).append("}").append(lineSeparator)
                 .append("}").append(lineSeparator);
 
         return builder.toString();
@@ -191,12 +201,12 @@ public class CodeGenerator {
         String lineSeparator = System.lineSeparator();
         for (String state : machine.getStates().sorted(String::compareToIgnoreCase)
                 .collect(Collectors.toSet())) {
-            builder.append("        case ")
+            builder.append(indent(2)).append("case ")
                     .append(STATE_START_SYMBOL)
                     .append(state)
                     .append(":").append(lineSeparator)
                     .append(defineOutputOfAState(state, machine))
-                    .append("            break;").append(lineSeparator);
+                    .append(indent(3)).append("break;").append(lineSeparator);
         }
 
         return builder.toString();
@@ -209,7 +219,7 @@ public class CodeGenerator {
                 .filter(output -> output.getState().equals(state))
                 .collect(Collectors.toSet());
         for (Output output : outputs) {
-            builder.append("            ");
+            builder.append(indent(3));
             Set<Pin> outputPinsOnThisOutput = output.getBoolPins().stream().map(BoolPin::getPin)
                     .collect(Collectors.toSet());
             String setOutputPins = Stream.concat(
@@ -217,7 +227,7 @@ public class CodeGenerator {
                     machine.getOutputPins().filter(pin -> !outputPinsOnThisOutput.contains(pin))
                             .map(pin -> pinToFalseBoolPin(pin, machine))
             ).map(this::mapBoolPinToOutput)
-                    .collect(Collectors.joining(lineSeparator + "            "));
+                    .collect(Collectors.joining(lineSeparator + indent(3)));
             builder.append(setOutputPins);
         }
         builder.append(lineSeparator);
@@ -266,12 +276,12 @@ public class CodeGenerator {
     private String setupInputPins(MooreMachine machine) {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
-        builder.append("    /* Input */").append(lineSeparator)
-                .append("    pinMode(clock, INPUT);").append(lineSeparator)
-                .append("    ")
+        builder.append(indent(1)).append("/* Input */").append(lineSeparator)
+                .append(indent(1)).append("pinMode(clock, INPUT);").append(lineSeparator)
+                .append(indent(1))
                 .append(machine.getInputPins().filter(pin -> !pin.getName().equals("clock"))
                         .map(this::setupAInputPin)
-                        .collect(Collectors.joining(lineSeparator + "    ")))
+                        .collect(Collectors.joining(lineSeparator + indent(1))))
                 .append(lineSeparator);
 
         return builder.toString();
@@ -284,10 +294,10 @@ public class CodeGenerator {
     private String setupOutputPins(MooreMachine machine) {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
-        builder.append("    /* Output */").append(lineSeparator)
-                .append("    ")
+        builder.append(indent(1)).append("/* Output */").append(lineSeparator)
+                .append(indent(1))
                 .append(machine.getOutputPins().map(this::setupAOutputPin)
-                        .collect(Collectors.joining(lineSeparator + "    ")))
+                        .collect(Collectors.joining(lineSeparator + indent(1))))
                 .append(lineSeparator);
 
         return builder.toString();
@@ -299,11 +309,11 @@ public class CodeGenerator {
 
     private String setupInitialConditions(MooreMachine machine) {
         String lineSeparator = System.lineSeparator();
-        return "    /* Initial state */" + lineSeparator +
-                "    currentState = " + STATE_START_SYMBOL + machine.getInitialState() + ";" +
-                lineSeparator +
-                "    previousClock = false;" + lineSeparator +
-                "    output(" + STATE_START_SYMBOL + machine.getInitialState() + ");" +
+        return indent(1) + "/* Initial state */" + lineSeparator +
+                indent(1) + "currentState = " + STATE_START_SYMBOL + machine.getInitialState() +
+                ";" + lineSeparator +
+                indent(1) + "previousClock = false;" + lineSeparator +
+                indent(1) + "output(" + STATE_START_SYMBOL + machine.getInitialState() + ");" +
                 lineSeparator;
     }
 
@@ -311,13 +321,15 @@ public class CodeGenerator {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
         builder.append("void loop() {").append(lineSeparator)
-                .append("    if (!previousClock && digitalRead(clock) == HIGH) {")
+                .append(indent(1)).append("if (!previousClock && digitalRead(clock) == HIGH) {")
                 .append(lineSeparator)
-                .append("        currentState = transition(currentState);").append(lineSeparator)
-                .append("        output(currentState);").append(lineSeparator)
-                .append("    }").append(lineSeparator)
+                .append(indent(2)).append("currentState = transition(currentState);")
                 .append(lineSeparator)
-                .append("    previousClock = digitalRead(clock) == HIGH;").append(lineSeparator)
+                .append(indent(2)).append("output(currentState);").append(lineSeparator)
+                .append(indent(1)).append("}").append(lineSeparator)
+                .append(lineSeparator)
+                .append(indent(1)).append("previousClock = digitalRead(clock) == HIGH;")
+                .append(lineSeparator)
                 .append("}").append(lineSeparator);
 
         return builder.toString();
