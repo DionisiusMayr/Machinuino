@@ -114,7 +114,7 @@ public class MooreMachineTest {
         strings.add("q1");
         builder.states(strings);
         MooreMachine machine = builder.build();
-        Assert.assertEquals(strings, machine.getStates());
+        Assert.assertEquals(strings, machine.getStates().collect(Collectors.toSet()));
     }
 
     @Test
@@ -147,7 +147,8 @@ public class MooreMachineTest {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
         builder.addState("q0");
         MooreMachine machine = builder.build();
-        Assert.assertTrue(machine.getStates().contains("q0"));
+        Assert.assertTrue(machine.getStates().collect(Collectors.toSet())
+                .contains("q0"));
     }
 
     @Test(expected = NullPointerException.class)
@@ -192,7 +193,8 @@ public class MooreMachineTest {
         builder.addState("q0");
         builder.removeState("q0");
         MooreMachine machine = builder.build();
-        Assert.assertFalse(machine.getStates().contains("q0"));
+        Assert.assertFalse(machine.getStates().collect(Collectors.toSet())
+                .contains("q0"));
     }
 
     @Test(expected = NullPointerException.class)
@@ -238,11 +240,12 @@ public class MooreMachineTest {
         builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
         builder.inputPins(pins);
         MooreMachine machine = builder.build();
-        Assert.assertEquals(pins, machine.getInputPins());
+        Assert.assertEquals(pins, machine.getInputPins().collect(Collectors.toSet()));
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(builder.getBoolPinOfValue(builder.getInputPinOfName("haha"), true));
         boolPins.add(builder.getBoolPinOfValue(builder.getInputPinOfName("haha"), false));
-        Assert.assertTrue(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertTrue(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test
@@ -256,8 +259,10 @@ public class MooreMachineTest {
         pins.add(Pin.ofValue("haha", 1));
         builder.inputPins(pins);
         MooreMachine machine = builder.build();
-        Assert.assertFalse(machine.getInputPins().contains(Pin.ofValue("rofl", 1)));
-        Assert.assertFalse(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertFalse(machine.getInputPins().collect(Collectors.toSet())
+                .contains(Pin.ofValue("rofl", 1)));
+        Assert.assertFalse(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test
@@ -313,11 +318,13 @@ public class MooreMachineTest {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
         builder.addInputPin(Pin.ofValue("haha", 1));
         MooreMachine machine = builder.build();
-        Assert.assertTrue(machine.getInputPins().contains(Pin.ofValue("haha", 1)));
+        Assert.assertTrue(machine.getInputPins().collect(Collectors.toSet())
+                .contains(Pin.ofValue("haha", 1)));
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(builder.getBoolPinOfValue(builder.getInputPinOfName("haha"), true));
         boolPins.add(builder.getBoolPinOfValue(builder.getInputPinOfName("haha"), false));
-        Assert.assertTrue(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertTrue(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test(expected = NullPointerException.class)
@@ -347,8 +354,10 @@ public class MooreMachineTest {
         boolPins.add(builder.getBoolPinOfValue(builder.getInputPinOfName("haha"), false));
         builder.removeInputPin(Pin.ofValue("haha", 1));
         MooreMachine machine = builder.build();
-        Assert.assertFalse(machine.getInputPins().contains(Pin.ofValue("haha", 1)));
-        Assert.assertFalse(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertFalse(machine.getInputPins().collect(Collectors.toSet())
+                .contains(Pin.ofValue("haha", 1)));
+        Assert.assertFalse(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test(expected = NullPointerException.class)
@@ -390,11 +399,12 @@ public class MooreMachineTest {
         pins.add(Pin.ofValue("lmao", 4));
         builder.outputPins(pins);
         MooreMachine machine = builder.build();
-        Assert.assertEquals(pins, machine.getOutputPins());
+        Assert.assertEquals(pins, machine.getOutputPins().collect(Collectors.toSet()));
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("lmao"), true));
         boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("led"), false));
-        Assert.assertTrue(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertTrue(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test
@@ -408,8 +418,10 @@ public class MooreMachineTest {
         pins.add(Pin.ofValue("haha", 1));
         builder.outputPins(pins);
         MooreMachine machine = builder.build();
-        Assert.assertFalse(machine.getOutputPins().contains(Pin.ofValue("rofl", 1)));
-        Assert.assertFalse(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertFalse(machine.getOutputPins().collect(Collectors.toSet())
+                .contains(Pin.ofValue("rofl", 1)));
+        Assert.assertFalse(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test
@@ -465,11 +477,13 @@ public class MooreMachineTest {
         MooreMachine.Builder builder = new MooreMachine.Builder("lmao");
         builder.addOutputPin(Pin.ofValue("haha", 1));
         MooreMachine machine = builder.build();
-        Assert.assertTrue(machine.getOutputPins().contains(Pin.ofValue("haha", 1)));
+        Assert.assertTrue(machine.getOutputPins().collect(Collectors.toSet())
+                .contains(Pin.ofValue("haha", 1)));
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("haha"), true));
         boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("haha"), false));
-        Assert.assertTrue(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertTrue(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test(expected = NullPointerException.class)
@@ -499,8 +513,10 @@ public class MooreMachineTest {
         boolPins.add(builder.getBoolPinOfValue(builder.getOutputPinOfName("haha"), false));
         builder.removeOutputPin(Pin.ofValue("haha", 1));
         MooreMachine machine = builder.build();
-        Assert.assertFalse(machine.getOutputPins().contains(Pin.ofValue("haha", 1)));
-        Assert.assertFalse(machine.getAllPinsValues().containsAll(boolPins));
+        Assert.assertFalse(machine.getOutputPins().collect(Collectors.toSet())
+                .contains(Pin.ofValue("haha", 1)));
+        Assert.assertFalse(machine.getAllPinsValues().collect(Collectors.toSet())
+                .containsAll(boolPins));
     }
 
     @Test(expected = NullPointerException.class)
@@ -586,7 +602,8 @@ public class MooreMachineTest {
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
         builder.transitions(Stream.of(transition).collect(Collectors.toSet()));
         MooreMachine machine = builder.build();
-        Assert.assertTrue(machine.getTransitions().contains(transition));
+        Assert.assertTrue(machine.getTransitions().collect(Collectors.toSet())
+                .contains(transition));
     }
 
     @Test(expected = NullPointerException.class)
@@ -690,7 +707,8 @@ public class MooreMachineTest {
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
         builder.addTransition(transition);
         MooreMachine machine = builder.build();
-        Assert.assertTrue(machine.getTransitions().contains(transition));
+        Assert.assertTrue(machine.getTransitions().collect(Collectors.toSet())
+                .contains(transition));
     }
 
     @Test(expected = NullPointerException.class)
@@ -730,7 +748,8 @@ public class MooreMachineTest {
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
         builder.removeEquivalentTransition(transition);
         MooreMachine machine = builder.build();
-        Assert.assertFalse(machine.getTransitions().contains(transition));
+        Assert.assertFalse(machine.getTransitions().collect(Collectors.toSet())
+                .contains(transition));
     }
 
     /* Output tests */
@@ -822,7 +841,7 @@ public class MooreMachineTest {
         builder.outputs(outputs);
 
         MooreMachine mooreMachine = builder.build();
-        Assert.assertEquals(outputs, mooreMachine.getOutputs());
+        Assert.assertEquals(outputs, mooreMachine.getOutputs().collect(Collectors.toSet()));
     }
 
     @Test
@@ -936,7 +955,7 @@ public class MooreMachineTest {
         outputs.add(Output.ofValue("q0", boolPins));
 
         MooreMachine mooreMachine = builder.build();
-        Assert.assertEquals(outputs, mooreMachine.getOutputs());
+        Assert.assertEquals(outputs, mooreMachine.getOutputs().collect(Collectors.toSet()));
     }
 
     @Test
@@ -985,7 +1004,7 @@ public class MooreMachineTest {
         builder.removeOutput("q1");
 
         MooreMachine mooreMachine = builder.build();
-        Assert.assertEquals(outputs, mooreMachine.getOutputs());
+        Assert.assertEquals(outputs, mooreMachine.getOutputs().collect(Collectors.toSet()));
     }
 
     @Test
@@ -1025,11 +1044,11 @@ public class MooreMachineTest {
 
         Assert.assertEquals(mooreMachine.getName(), "M1");
         Assert.assertEquals(mooreMachine.getInitialState(), "q0");
-        Assert.assertEquals(mooreMachine.getStates(), states);
-        Assert.assertEquals(mooreMachine.getInputPins(), inputPins);
-        Assert.assertEquals(mooreMachine.getOutputPins(), outputPins);
-        Assert.assertEquals(mooreMachine.getTransitions(), transitions);
-        Assert.assertEquals(mooreMachine.getOutputs(), outputs);
+        Assert.assertEquals(mooreMachine.getStates().collect(Collectors.toSet()), states);
+        Assert.assertEquals(mooreMachine.getInputPins().collect(Collectors.toSet()), inputPins);
+        Assert.assertEquals(mooreMachine.getOutputPins().collect(Collectors.toSet()), outputPins);
+        Assert.assertEquals(mooreMachine.getTransitions().collect(Collectors.toSet()), transitions);
+        Assert.assertEquals(mooreMachine.getOutputs().collect(Collectors.toSet()), outputs);
     }
 
     @Test
@@ -1106,11 +1125,11 @@ public class MooreMachineTest {
     @Test
     public void mooreMachineToString() {
         MooreMachine machine = new MooreMachine.Builder(defaultBuilder).build();
-        Set<String> states = machine.getStates();
-        Set<Pin> inputPins = machine.getInputPins();
-        Set<Pin> outputPins = machine.getOutputPins();
-        Set<Transition> transitions = machine.getTransitions();
-        Set<Output> outputs = machine.getOutputs();
+        Set<String> states = machine.getStates().collect(Collectors.toSet());
+        Set<Pin> inputPins = machine.getInputPins().collect(Collectors.toSet());
+        Set<Pin> outputPins = machine.getOutputPins().collect(Collectors.toSet());
+        Set<Transition> transitions = machine.getTransitions().collect(Collectors.toSet());
+        Set<Output> outputs = machine.getOutputs().collect(Collectors.toSet());
         Assert.assertEquals(machine.toString(), "MooreMachine{" +
                 "name='" + machine.getName() + "\', initialState='" + machine.getInitialState() +
                 "\', states=" + states + ", inputPins=" + inputPins + ", outputPins=" + outputPins +

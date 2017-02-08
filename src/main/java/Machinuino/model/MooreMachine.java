@@ -645,28 +645,28 @@ public class MooreMachine {
         return initialState;
     }
 
-    public Set<String> getStates() {
-        return new HashSet<>(states);
+    public Stream<String> getStates() {
+        return states.stream();
     }
 
-    public Set<Pin> getInputPins() {
-        return new HashSet<>(inputPins);
+    public Stream<Pin> getInputPins() {
+        return inputPins.stream();
     }
 
-    public Set<Pin> getOutputPins() {
-        return new HashSet<>(outputPins);
+    public Stream<Pin> getOutputPins() {
+        return outputPins.stream();
     }
 
-    public Set<Transition> getTransitions() {
-        return new HashSet<>(transitions);
+    public Stream<Transition> getTransitions() {
+        return transitions.stream();
     }
 
-    public Set<Output> getOutputs() {
-        return new HashSet<>(outputs);
+    public Stream<Output> getOutputs() {
+        return outputs.stream();
     }
 
-    public Set<BoolPin> getAllPinsValues() {
-        return new HashSet<>(allPinsValues);
+    public Stream<BoolPin> getAllPinsValues() {
+        return allPinsValues.stream();
     }
 
     @Override
