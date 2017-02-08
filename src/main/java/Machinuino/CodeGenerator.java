@@ -69,11 +69,9 @@ public class CodeGenerator {
     }
 
     private String defineOutputPins(MooreMachine machine) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("/* Output */")
-                .append(System.lineSeparator());
-        builder.append(definePins(machine.getOutputPins()));
-        return builder.toString();
+        return "/* Output */" +
+                System.lineSeparator() +
+                definePins(machine.getOutputPins());
     }
 
     private String definePins(Stream<Pin> pinStream) {
@@ -252,7 +250,6 @@ public class CodeGenerator {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
         builder.append("int currentState;").append(lineSeparator)
-                .append("bool previousClock;").append(lineSeparator)
                 .append(lineSeparator)
                 .append(defineSetupFunction(machine))
                 .append(lineSeparator)
@@ -312,7 +309,6 @@ public class CodeGenerator {
         return indent(1) + "/* Initial state */" + lineSeparator +
                 indent(1) + "currentState = " + STATE_START_SYMBOL + machine.getInitialState() +
                 ";" + lineSeparator +
-                indent(1) + "previousClock = false;" + lineSeparator +
                 indent(1) + "output(" + STATE_START_SYMBOL + machine.getInitialState() + ");" +
                 lineSeparator;
     }
@@ -321,14 +317,13 @@ public class CodeGenerator {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
         builder.append("void loop() {").append(lineSeparator)
-                .append(indent(1)).append("if (!previousClock && digitalRead(clock) == HIGH) {")
+                .append(indent(1)).append("while (digitalRead(clock) == LOW);")
+                .append(lineSeparator).append(lineSeparator)
+                .append(indent(1)).append("currentState = transition(currentState);")
                 .append(lineSeparator)
-                .append(indent(2)).append("currentState = transition(currentState);")
+                .append(indent(1)).append("output(currentState);").append(lineSeparator)
                 .append(lineSeparator)
-                .append(indent(2)).append("output(currentState);").append(lineSeparator)
-                .append(indent(1)).append("}").append(lineSeparator)
-                .append(lineSeparator)
-                .append(indent(1)).append("previousClock = digitalRead(clock) == HIGH;")
+                .append(indent(1)).append("while (digitalRead(clock) == HIGH);")
                 .append(lineSeparator)
                 .append("}").append(lineSeparator);
 
