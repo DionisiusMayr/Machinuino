@@ -88,12 +88,10 @@ void output(int current) {
 
 /* Loop */
 void loop() {
+    while (digitalRead(clock) == LOW);
 
-    /* Wait for clock */
-    if (previousClock && digitalRead(clock) == HIGH) {
-         currentState = transition(currentState);
-         output(currentState);
-    }
+    currentState = transition(currentState);
+    output(currentState);
 
-    previousClock = digitalRead(clock) == HIGH;
+    while (digitalRead(clock) == HIGH);
 }

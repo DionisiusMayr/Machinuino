@@ -140,8 +140,7 @@ public class CodeGenerator {
     private String defineTransitionsOfEachState(MooreMachine machine) {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
-        for (String state : machine.getStates().sorted(String::compareToIgnoreCase)
-                .collect(Collectors.toSet())) {
+        for (String state : machine.getStates().collect(Collectors.toSet())) {
             builder.append(indent(2)).append("case ")
                     .append(STATE_START_SYMBOL)
                     .append(state)
@@ -197,8 +196,7 @@ public class CodeGenerator {
     private String defineOutputOfEachState(MooreMachine machine) {
         StringBuilder builder = new StringBuilder();
         String lineSeparator = System.lineSeparator();
-        for (String state : machine.getStates().sorted(String::compareToIgnoreCase)
-                .collect(Collectors.toSet())) {
+        for (String state : machine.getStates().collect(Collectors.toSet())) {
             builder.append(indent(2)).append("case ")
                     .append(STATE_START_SYMBOL)
                     .append(state)
@@ -242,7 +240,7 @@ public class CodeGenerator {
                 .filter(boolPin -> boolPin.getPin().equals(pin))
                 .filter(boolPin -> !boolPin.isHigh())
                 .findFirst();
-        // Impossible to this optional not have a value
+        // Impossible to this optional not have a value by construction
         return optional.isPresent() ? optional.get() : null;
     }
 
