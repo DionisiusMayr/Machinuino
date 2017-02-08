@@ -39,11 +39,27 @@ moore M1 {
 
     output {
         pins {
+            motor: 5,
+            motor: 7,
+            led:   6
         }
 
         /* Dictates the output of each state. */
         function {
+            q0 {
+                motor,
+                !led
+            }
 
+            q1 {
+                !motor,
+                !led
+            }
+
+            q2 {
+                motor,
+                led
+            }
         }
     }
 }

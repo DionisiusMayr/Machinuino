@@ -13,9 +13,13 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
     private MooreMachine.Builder mooreBuilder;
     private Fault fault;
     private static SemanticAnalyzer semanticAnalyzerInstance;
+    private boolean finishedAnalysis;
 
     public static SemanticAnalyzer getInstance() {
-        if (semanticAnalyzerInstance == null) semanticAnalyzerInstance =  new SemanticAnalyzer();
+        if (semanticAnalyzerInstance == null) {
+            semanticAnalyzerInstance =  new SemanticAnalyzer();
+            semanticAnalyzerInstance.finishedAnalysis = false;
+        }
 
         return semanticAnalyzerInstance;
     }
@@ -35,7 +39,23 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
         Fault faultCopy = fault;
         fault = Fault.getInstance();
 
+        finishedAnalysis = true;
         return faultCopy;
+    }
+
+    /**
+     * This method must be called after {@link #analyzeFile}.
+     *
+     * @return the {@link MooreMachine} created during the analysis.
+     * @throws IllegalStateException if this method is called before {@link #analyzeFile}.
+     * TODO: test this
+     */
+    public MooreMachine buildMachine() {
+        if (finishedAnalysis) return mooreBuilder.build();
+        else {
+            throw new IllegalStateException("Must analyze file before calling " +
+                    "SemanticAnalyzer#buildMachine!");
+        }
     }
 
     @Override
@@ -75,17 +95,24 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
         int clockPinNumber = Integer.parseInt(ctx.NUMBER(0).getText());
         mooreBuilder.addInputPin(Pin.ofValue("clock", clockPinNumber));
 
-        int i = 0;
-        while (ctx.NAME(i) != null) {
-            String pinName = ctx.NAME(i).getText();
-            int pinNumber = Integer.parseInt(ctx.NUMBER(i + 1).getText());
-            Pin pin = Pin.ofValue(pinName, pinNumber);
-            if (mooreBuilder.getInputPinOfName(pin.getName()) != null) {
-                // TODO reporting a line that is far from the token
-                fault.addErrorDuplicatePin(pinName, ctx.getStart().getLine());
+        // TODO: Document what an empty "input pins" is (it ignore the clock pin)
+        if (ctx.NAME(0) == null) {
+            fault.addWarningEmptySection("Input Pins", ctx.getStart().getLine());
+        }
+        else {
+            int i = 0;
+
+            while (ctx.NAME(i) != null) {
+                String pinName = ctx.NAME(i).getText();
+                int pinNumber = Integer.parseInt(ctx.NUMBER(i + 1).getText());
+                Pin pin = Pin.ofValue(pinName, pinNumber);
+                if (mooreBuilder.getInputPinOfName(pin.getName()) != null) {
+                    // TODO it is reporting a line that is far from the token
+                    fault.addErrorDuplicatePin(pinName, ctx.getStart().getLine());
+                }
+                else mooreBuilder.addInputPin(pin);
+                ++i;
             }
-            else mooreBuilder.addInputPin(pin);
-            ++i;
         }
 
         return super.visitPinsInput(ctx);
@@ -104,9 +131,11 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
                     fault.addErrorUndeclaredState(actualState, ctx.getStart().getLine());
                 }
 
-                // TODO test this
-                if (ctx.transBlock(i) == null) {
-                    fault.addWarningEmptySection("Transition block", ctx.getStart().getLine());
+                // TODO: it won't inform two empty transition blocks,
+                // thus the name of the trans block
+                if (ctx.transBlock(i) == null || ctx.transBlock(i).getText().isEmpty()) {
+                    fault.addWarningEmptySection("Transition block of " + ctx.NAME(i).getText(),
+                            ctx.getStart().getLine());
                 }
                 ++i;
             }
@@ -160,17 +189,58 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
 
         while (ctx.NAME(i) != null) {
             int line = ctx.getStart().getLine();
-            String pinName = ctx.NAME(i).getText();
-            if (mooreBuilder.getInputPinOfName(pinName) != null) {
-                fault.addErrorDuplicatePin(pinName, line);
-            }
-            else if (mooreBuilder.getOutputPinOfName(pinName) != null) {
-                fault.addErrorUndeclaredOutputPin(pinName, line);
+            String outputPinName = ctx.NAME(i).getText();
+            int outputPinNumber = Integer.parseInt(ctx.NUMBER(i).getText());
+
+            if (mooreBuilder.getInputPinOfName(outputPinName) != null) {
+                fault.addErrorDuplicatePin(outputPinName, line);
+            } else if (mooreBuilder.getOutputPinOfName(outputPinName) != null) {
+                if (mooreBuilder.getOutputPinOfName(outputPinName).getName()
+                        .equals(outputPinName)) {
+                    fault.addErrorDuplicatePin(outputPinName, ctx.getStart().getLine());
+                } else {
+                    fault.addErrorUndeclaredOutputPin(outputPinName, line);
+                }
+            } else {
+                mooreBuilder.addOutputPin(Pin.ofValue(outputPinName, outputPinNumber));
             }
 
             ++i;
         }
 
         return super.visitPinsOutput(ctx);
+    }
+
+    @Override
+    public Object visitFunction(MachinuinoParser.FunctionContext ctx) {
+        int i = 0;
+        while (ctx.NAME(i) != null) {
+            String state = ctx.NAME(i).getText();
+            int line = ctx.getStart().getLine();
+
+            if (!mooreBuilder.hasState(state)) {
+                fault.addErrorUndeclaredState(state, line);
+            }
+            ++i;
+        }
+        return super.visitFunction(ctx);
+    }
+
+    @Override
+    public Object visitFuncBlock(MachinuinoParser.FuncBlockContext ctx) {
+        int line = ctx.getStart().getLine();
+
+        int i = 0;
+        while (ctx.extName(i) != null) {
+            String outputPinName = ctx.extName(i).NAME().getText();
+
+            Pin outputPin = mooreBuilder.getOutputPinOfName(outputPinName);
+            if (outputPin == null) {
+                fault.addErrorUndeclaredOutputPin(outputPinName, line);
+            }
+            ++i;
+        }
+
+        return super.visitFuncBlock(ctx);
     }
 }

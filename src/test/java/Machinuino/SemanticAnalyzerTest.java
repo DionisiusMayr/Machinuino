@@ -38,6 +38,7 @@ public class SemanticAnalyzerTest {
     public void emptyStates() {
         String file = pathSemanticErrors + "emptyStates.moore";
         compareExpectedFaults(file, "", "2: Empty \"state\" section" + LS +
+                "5: Empty \"Input Pins\" section" + LS +
                 "9: Empty \"Transition\" section" + LS +
                 "13: Empty \"Output pins\" section" + LS);
     }
@@ -74,7 +75,7 @@ public class SemanticAnalyzerTest {
     }
 
     @Test
-    public void undeclaredInputPit() {
+    public void undeclaredInputPin() {
         String file = pathSemanticErrors + "undeclaredInputPin.moore";
         compareExpectedFaults(file, "20: Input Pin errrrr undeclared." + LS, "");
     }
@@ -82,9 +83,38 @@ public class SemanticAnalyzerTest {
     @Test
     public void emptyOutputPins() {
         String file = pathSemanticErrors + "emptyOutputPins.moore";
-        compareExpectedFaults(file, "", "");
+        compareExpectedFaults(file, "", "41: Empty \"Output pins\" section" + LS);
     }
 
+    @Test
+    public void undeclaredOutputPin() {
+        String file = pathSemanticErrors + "undeclaredOutputPin.moore";
+        compareExpectedFaults(file, "49: Output Pin wrongPin undeclared." + LS, "");
+    }
+
+    @Test
+    public void undeclaredFunctionState() {
+        String file = pathSemanticErrors + "undeclaredFunctionState.moore";
+        compareExpectedFaults(file, "47: State q3 undeclared." + LS, "");
+    }
+
+    @Test
+    public void emptyTransBlock() {
+        String file = pathSemanticErrors + "emptyTransBlock.moore";
+        compareExpectedFaults(file, "", "11: Empty \"Transition block of a1\" section" + LS +
+                "11: Empty \"Transition block of a2\" section" + LS);
+    }
+
+    @Test
+    public void emptyInputPins() {
+        String file = pathSemanticErrors + "emptyInputPins.moore";
+        compareExpectedFaults(file, "", "9: Empty \"Input Pins\" section" + LS +
+                "14: Empty \"Transition\" section" + LS);
+    }
+
+    @Test
+    public void duplicateOutputPin() {
+        String file = pathSemanticErrors + "duplicateOutputPin.moore";
+        compareExpectedFaults(file, "41: Duplicate pin motor." + LS, "");
+    }
 }
-
-
