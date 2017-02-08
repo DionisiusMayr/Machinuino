@@ -117,4 +117,28 @@ public class SemanticAnalyzerTest {
         String file = pathSemanticErrors + "duplicateOutputPin.moore";
         compareExpectedFaults(file, "41: Duplicate pin motor." + LS, "");
     }
+
+    @Test
+    public void duplicatePinNumber() {
+        String file = pathSemanticErrors + "duplicatePinNumber.moore";
+        compareExpectedFaults(file, "9: Pin Number 10 already used." + LS, "");
+    }
+
+    @Test
+    public void duplicatePinNumber2() {
+        String file = pathSemanticErrors + "duplicatePinNumber2.moore";
+        compareExpectedFaults(file, "41: Pin Number 10 already used." + LS, "");
+    }
+
+    @Test
+    public void duplicateOutput() {
+        String file = pathSemanticErrors + "duplicateOutput.moore";
+        compareExpectedFaults(file, "54: Output \"motor\" already defined." + LS, "");
+    }
+
+    @Test
+    public void duplicateInputInExp() {
+        String file = pathSemanticErrors + "duplicateInputInExp.moore";
+        compareExpectedFaults(file, "18: Input Pin \"button\" already used in expression." + LS, "");
+    }
 }

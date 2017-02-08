@@ -8,12 +8,15 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SemanticAnalyzer extends MachinuinoBaseVisitor {
     private MooreMachine.Builder mooreBuilder;
     private Fault fault;
     private static SemanticAnalyzer semanticAnalyzerInstance;
     private boolean finishedAnalysis;
+    private Set<Integer> pinNumbers;
 
     public static SemanticAnalyzer getInstance() {
         if (semanticAnalyzerInstance == null) {
@@ -26,6 +29,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
 
     private SemanticAnalyzer() {
         fault = Fault.getInstance();
+        pinNumbers = new HashSet<>();
     }
 
     Fault analyzeFile(String fileLocation) throws IOException {
@@ -95,6 +99,8 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
         int clockPinNumber = Integer.parseInt(ctx.NUMBER(0).getText());
         mooreBuilder.addInputPin(Pin.ofValue("clock", clockPinNumber));
 
+        pinNumbers.add(clockPinNumber);
+
         // TODO: Document what an empty "input pins" is (it ignore the clock pin)
         if (ctx.NAME(0) == null) {
             fault.addWarningEmptySection("Input Pins", ctx.getStart().getLine());
@@ -105,6 +111,9 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
             while (ctx.NAME(i) != null) {
                 String pinName = ctx.NAME(i).getText();
                 int pinNumber = Integer.parseInt(ctx.NUMBER(i + 1).getText());
+                if (pinNumbers.contains(pinNumber)) {
+                    fault.addErrorPinNumberAlreadyUsed(pinNumber, ctx.getStart().getLine());
+                }
                 Pin pin = Pin.ofValue(pinName, pinNumber);
                 if (mooreBuilder.getInputPinOfName(pin.getName()) != null) {
                     // TODO it is reporting a line that is far from the token
@@ -163,6 +172,8 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
 
     @Override
     public Object visitLogicExp(MachinuinoParser.LogicExpContext ctx) {
+        Set<String> inputsUsed = new HashSet<>();
+
         int i = 0;
         while (ctx.extName(i) != null) {
             String pinName = ctx.extName(i).NAME().getText();
@@ -171,8 +182,15 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
             Pin pin = mooreBuilder.getInputPinOfName(pinName);
 
             // TODO test both conditions
-            if (pin == null || !mooreBuilder.hasInputPin(pin))
+            if (pin == null || !mooreBuilder.hasInputPin(pin)) {
                 fault.addErrorUndeclaredInputPin(pinName, line);
+            } else {
+                if (inputsUsed.contains(pinName)) {
+                    fault.addErrorInputAlreadyInExp(pinName, ctx.getStart().getLine());
+                } else {
+                    inputsUsed.add(pinName);
+                }
+            }
 
             ++i;
         }
@@ -183,14 +201,18 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
     // TODO: Verify the pin number
     @Override
     public Object visitPinsOutput(MachinuinoParser.PinsOutputContext ctx) {
-        int i = 0;
-        if (ctx.NAME(i) == null)
+        if (ctx.NAME(0) == null)
             fault.addWarningEmptySection("Output pins", ctx.getStart().getLine());
 
+        int i = 0;
         while (ctx.NAME(i) != null) {
             int line = ctx.getStart().getLine();
             String outputPinName = ctx.NAME(i).getText();
             int outputPinNumber = Integer.parseInt(ctx.NUMBER(i).getText());
+
+            if (pinNumbers.contains(outputPinNumber)) {
+                fault.addErrorPinNumberAlreadyUsed(outputPinNumber, ctx.getStart().getLine());
+            }
 
             if (mooreBuilder.getInputPinOfName(outputPinName) != null) {
                 fault.addErrorDuplicatePin(outputPinName, line);
@@ -229,6 +251,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
     @Override
     public Object visitFuncBlock(MachinuinoParser.FuncBlockContext ctx) {
         int line = ctx.getStart().getLine();
+        Set<String> pinsWithDefinedOutput = new HashSet<>();
 
         int i = 0;
         while (ctx.extName(i) != null) {
@@ -238,6 +261,13 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
             if (outputPin == null) {
                 fault.addErrorUndeclaredOutputPin(outputPinName, line);
             }
+            else {
+                if (pinsWithDefinedOutput.contains(outputPinName)) {
+                    fault.addErrorOutputAlreadyDefined(outputPinName, line);
+                }
+                pinsWithDefinedOutput.add(outputPinName);
+            }
+
             ++i;
         }
 
