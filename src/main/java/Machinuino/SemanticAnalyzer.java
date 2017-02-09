@@ -1,8 +1,6 @@
 package Machinuino;
 
-import Machinuino.model.Fault;
-import Machinuino.model.MooreMachine;
-import Machinuino.model.Pin;
+import Machinuino.model.*;
 import org.antlr.v4.runtime.ANTLRFileStream;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -17,6 +15,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
     private static SemanticAnalyzer semanticAnalyzerInstance;
     private boolean finishedAnalysis;
     private Set<Integer> pinNumbers;
+    private String previousState;
 
     public static SemanticAnalyzer getInstance() {
         if (semanticAnalyzerInstance == null) {
@@ -135,22 +134,25 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
         else {
             int i = 0;
             while (ctx.NAME(i) != null) {
-                String actualState = ctx.NAME(i).getText();
-                if (!mooreBuilder.hasState(actualState)) {
-                    fault.addErrorUndeclaredState(actualState, ctx.getStart().getLine());
+                previousState = ctx.NAME(i).getText();
+
+                if (!mooreBuilder.hasState(previousState)) {
+                    fault.addErrorUndeclaredState(previousState, ctx.getStart().getLine());
                 }
 
-                // TODO: it won't inform two empty transition blocks,
-                // thus the name of the trans block
+                // Note: it won't inform two empty transition blocks, thus the name of the trans block
                 if (ctx.transBlock(i) == null || ctx.transBlock(i).getText().isEmpty()) {
                     fault.addWarningEmptySection("Transition block of " + ctx.NAME(i).getText(),
                             ctx.getStart().getLine());
                 }
+
+                visitTransBlock(ctx.transBlock(i));
+
                 ++i;
             }
         }
 
-        return super.visitTransition(ctx);
+        return "";  // Note: already visited the children rules.
     }
 
     @Override
@@ -164,19 +166,29 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
             String targetState = ctx.NAME().getText();
             if (!mooreBuilder.hasState(targetState)) {
                 fault.addErrorUndeclaredState(targetState, ctx.getStart().getLine());
+            } else if (mooreBuilder.hasState(previousState)) {
+                Transition trans = Transition.ofValue(previousState, targetState, visitLogicExp(ctx.logicExp()));
+                if (mooreBuilder.hasEquivalentTransition(trans)) {
+                    fault.addErrorDuplicateTransitionFromState(previousState, ctx.getStart().getLine());
+                } else {
+                    mooreBuilder.addTransition(trans);
+                }
             }
         }
 
-        return super.visitPartialTrans(ctx);
+        return "";  // Note: already visited the children rules.
     }
 
+    // Returns a BoolPin Set representing the entire logic expression.
     @Override
-    public Object visitLogicExp(MachinuinoParser.LogicExpContext ctx) {
+    public Set<BoolPin> visitLogicExp(MachinuinoParser.LogicExpContext ctx) {
         Set<String> inputsUsed = new HashSet<>();
+        Set<BoolPin> sbp = new HashSet<>();
 
         int i = 0;
         while (ctx.extName(i) != null) {
             String pinName = ctx.extName(i).NAME().getText();
+            boolean pinValue = !ctx.extName(i).getText().startsWith("!");
             int line = ctx.getStart().getLine();
 
             Pin pin = mooreBuilder.getInputPinOfName(pinName);
@@ -189,16 +201,17 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
                     fault.addErrorInputAlreadyInExp(pinName, ctx.getStart().getLine());
                 } else {
                     inputsUsed.add(pinName);
+                    sbp.add(BoolPin.ofValue(mooreBuilder.getInputPinOfName(pinName), pinValue));
                 }
             }
 
             ++i;
         }
 
-        return super.visitLogicExp(ctx);
+        super.visitLogicExp(ctx);
+        return sbp;
     }
 
-    // TODO: Verify the pin number
     @Override
     public Object visitPinsOutput(MachinuinoParser.PinsOutputContext ctx) {
         if (ctx.NAME(0) == null)
@@ -243,34 +256,49 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
             if (!mooreBuilder.hasState(state)) {
                 fault.addErrorUndeclaredState(state, line);
             }
+            else {
+                if (mooreBuilder.hasOutput(state)) {
+                    fault.addErrorOutputAlreadyDefined(state, line);
+                } else {
+                    String stateOfOutput = state;
+                    Set<BoolPin> sbp = visitFuncBlock(ctx.funcBlock(i));
+
+                    mooreBuilder.addOutput(stateOfOutput, sbp);
+                }
+            }
             ++i;
         }
         return super.visitFunction(ctx);
     }
 
+    // Returns a BoolPin Set representing every output of a certain state.
     @Override
-    public Object visitFuncBlock(MachinuinoParser.FuncBlockContext ctx) {
+    public Set<BoolPin> visitFuncBlock(MachinuinoParser.FuncBlockContext ctx) {
         int line = ctx.getStart().getLine();
         Set<String> pinsWithDefinedOutput = new HashSet<>();
+        Set<BoolPin> boolPins = new HashSet<>();
 
         int i = 0;
         while (ctx.extName(i) != null) {
             String outputPinName = ctx.extName(i).NAME().getText();
+            boolean pinValue = !ctx.extName(i).getText().startsWith("!");
 
             Pin outputPin = mooreBuilder.getOutputPinOfName(outputPinName);
             if (outputPin == null) {
                 fault.addErrorUndeclaredOutputPin(outputPinName, line);
-            }
-            else {
+            } else {
                 if (pinsWithDefinedOutput.contains(outputPinName)) {
                     fault.addErrorOutputAlreadyDefined(outputPinName, line);
+                } else {
+                    pinsWithDefinedOutput.add(outputPinName);
+                    boolPins.add(mooreBuilder.getBoolPinOfValue(outputPin, pinValue));
                 }
-                pinsWithDefinedOutput.add(outputPinName);
             }
 
             ++i;
         }
 
-        return super.visitFuncBlock(ctx);
+        super.visitFuncBlock(ctx);
+        return boolPins;
     }
 }

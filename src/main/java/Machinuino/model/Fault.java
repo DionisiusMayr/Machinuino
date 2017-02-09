@@ -30,11 +30,8 @@ public class Fault {
     }
 
     public void addError(String error) {
-        if (error == null) throw new NullPointerException(NAME_TAG +
-                "#addError: Null error message.");
-
-        if (!errors.contains(error))
-            errors.add(error);
+        if (error == null) throw new NullPointerException(NAME_TAG + "#addError: Null error message.");
+        if (!errors.contains(error)) errors.add(error);
     }
 
     public void addErrorDuplicatePin(String pinName, int line) {
@@ -87,6 +84,14 @@ public class Fault {
 
         this.addError(line + ": Input Pin \"" + inputPinName +
                 "\" already used in expression." + System.lineSeparator());
+    }
+
+    public void addErrorDuplicateTransitionFromState(String state, int line) {
+        Utils.verifyNullity(NAME_TAG + "#addErrorDuplicateTransitionFromState", "State", state);
+        Utils.verifyPositive(NAME_TAG + "#addErrorDuplicateTransitionFromState", "line", line);
+
+        this.addError(line + ": Transition comming from state \"" + state + "\" already defined." +
+                System.lineSeparator());
     }
 
     public String getErrors() {

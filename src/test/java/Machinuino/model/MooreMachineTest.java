@@ -628,7 +628,7 @@ public class MooreMachineTest {
     public void builderHasEquivalentTransition() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
-        boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), false));
+        boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), true));
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
         Assert.assertTrue(builder.hasEquivalentTransition(transition));
     }
