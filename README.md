@@ -23,13 +23,15 @@ Develop a representation and description language for Moore Machines and a Compi
 - [X] Test and validate the syntactic analyzer;
 - [X] Develop the semantic analyzer;
 - [X] Test and validate the semantic analyzer;
-- [ ] Generate code for the target platforms.
+- [X] Generate code for the target platforms.
 
 ## Extras
 - [ ] Design a logo;
 - [ ] Update/finalize the README.md to share this repository;
 - [ ] Make a visualization mechanism for the Moore Machine states;
-- [ ] Check for inaccessible states.
+- [ ] Check for inaccessible states;
+- [ ] Improve line of fault report;
+- [ ] Improve code coverage.
 
 ## Developers
 - [Caio Herrera](https://github.com/caioherrera)   - 595004
