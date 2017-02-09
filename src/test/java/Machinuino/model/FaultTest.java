@@ -3,7 +3,7 @@ package Machinuino.model;
 import org.junit.Assert;
 import org.junit.Test;
 
-//TODO: Use System.lineSeparator()
+// TODO: Use System.lineSeparator()
 public class FaultTest {
 
     @Test

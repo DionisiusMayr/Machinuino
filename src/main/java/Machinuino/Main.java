@@ -9,15 +9,19 @@ public class Main {
 
     public static void main(String[] args) {
         System.out.println("Begin");
-        // TODO check the number of arguments
-        //String file = args[0];
-        String file = "/home/dionisius/Dropbox/UFSCar/2016_2/Laboratório de Microcontroladores e Aplicações/Machinuino/doc/template.moore";
 
-        if(!file.endsWith(".moore")) {
-            System.out.println("Pass a .moore file as argument.");
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Incorrect Usage. Instructions:" + System.lineSeparator() +
+                    "java -jar package.jar mooreMachine.moore");
         }
-        else {
+
+        String file = args[0];
+
+        if (!file.endsWith(".moore")) {
+            System.out.println("Pass a .moore file as argument.");
+        } else {
             String syntacticErrors;
+
             try {
                 syntacticErrors = SyntacticAnalyzer.analyzeFile(file);
             } catch (IOException e) {
@@ -44,8 +48,7 @@ public class Main {
                     System.out.println("No Semantic Errors.");
                     if (fault.getWarnings().isEmpty()) {
                         System.out.println("No Semantic Warnings.");
-                    }
-                    else {
+                    } else {
                         System.out.println("Semantic Warnings:");
                         System.out.println(fault.getWarnings());
                     }

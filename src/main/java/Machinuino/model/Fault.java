@@ -13,10 +13,8 @@ public class Fault {
     private List<String> warnings;
 
     private Fault(List<String> errors, List<String> warnings) {
-        if (errors == null) throw new NullPointerException(NAME_TAG +
-                "#Fault: Null errors array list.");
-        if (warnings == null) throw new NullPointerException(NAME_TAG +
-                "#Fault: Null warnings array list.");
+        if (errors == null) throw new NullPointerException(NAME_TAG + "#Fault: Null errors array list.");
+        if (warnings == null) throw new NullPointerException(NAME_TAG + "#Fault: Null warnings array list.");
 
         this.errors = errors;
         this.warnings = warnings;
@@ -66,16 +64,14 @@ public class Fault {
         Utils.verifyPositive(NAME_TAG + "#addErrorPinNumberAlreadyUsed", "pin number", pinNumber);
         Utils.verifyPositive(NAME_TAG + "#addErrorPinNumberAlreadyUsed", "line", line);
 
-        this.addError(line + ": Pin Number " + pinNumber + " already used." +
-                System.lineSeparator());
+        this.addError(line + ": Pin Number " + pinNumber + " already used." + System.lineSeparator());
     }
 
     public void addErrorOutputAlreadyDefined(String outputPinName, int line) {
         Utils.verifyNullity(NAME_TAG + "#addErrorOutputAlreadyDefined", "Pin name", outputPinName);
         Utils.verifyPositive(NAME_TAG + "#addErrorOutputAlreadyDefined", "line", line);
 
-        this.addError(line + ": Output \"" + outputPinName + "\" already defined." +
-                System.lineSeparator());
+        this.addError(line + ": Output \"" + outputPinName + "\" already defined." + System.lineSeparator());
     }
 
     public void addErrorInputAlreadyInExp(String inputPinName, int line) {
@@ -109,8 +105,7 @@ public class Fault {
         Utils.verifyNullity(NAME_TAG + "#addWarningDuplicateSymbol", "symbol", symbol);
         Utils.verifyPositive(NAME_TAG + "#addWarningDuplicateSymbol", "line", line);
 
-        this.addWarning(line + ": Symbol " + symbol + " already used. Will be ignored." +
-                System.lineSeparator());
+        this.addWarning(line + ": Symbol " + symbol + " already used. Will be ignored." + System.lineSeparator());
     }
 
     public void addWarningEmptySection(String section, int line) {

@@ -19,7 +19,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
 
     public static SemanticAnalyzer getInstance() {
         if (semanticAnalyzerInstance == null) {
-            semanticAnalyzerInstance =  new SemanticAnalyzer();
+            semanticAnalyzerInstance = new SemanticAnalyzer();
             semanticAnalyzerInstance.finishedAnalysis = false;
         }
 
@@ -51,7 +51,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
      *
      * @return the {@link MooreMachine} created during the analysis.
      * @throws IllegalStateException if this method is called before {@link #analyzeFile}.
-     * TODO: test this
+     *                               TODO: test this
      */
     public MooreMachine buildMachine() {
         if (finishedAnalysis) return mooreBuilder.build();
@@ -88,7 +88,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
 
                 ++i;
             }
-        } else fault.addWarningEmptySection("state",line);
+        } else fault.addWarningEmptySection("state", line);
 
         return super.visitStates(ctx);
     }
@@ -103,8 +103,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
         // TODO: Document what an empty "input pins" is (it ignore the clock pin)
         if (ctx.NAME(0) == null) {
             fault.addWarningEmptySection("Input Pins", ctx.getStart().getLine());
-        }
-        else {
+        } else {
             int i = 0;
 
             while (ctx.NAME(i) != null) {
@@ -117,8 +116,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
                 if (mooreBuilder.getInputPinOfName(pin.getName()) != null) {
                     // TODO it is reporting a line that is far from the token
                     fault.addErrorDuplicatePin(pinName, ctx.getStart().getLine());
-                }
-                else mooreBuilder.addInputPin(pin);
+                } else mooreBuilder.addInputPin(pin);
                 ++i;
             }
         }
@@ -130,8 +128,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
     public Object visitTransition(MachinuinoParser.TransitionContext ctx) {
         if (ctx.NAME(0) == null) {
             fault.addWarningEmptySection("Transition", ctx.getStart().getLine());
-        }
-        else {
+        } else {
             int i = 0;
             while (ctx.NAME(i) != null) {
                 previousState = ctx.NAME(i).getText();
@@ -214,8 +211,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
 
     @Override
     public Object visitPinsOutput(MachinuinoParser.PinsOutputContext ctx) {
-        if (ctx.NAME(0) == null)
-            fault.addWarningEmptySection("Output pins", ctx.getStart().getLine());
+        if (ctx.NAME(0) == null) fault.addWarningEmptySection("Output pins", ctx.getStart().getLine());
 
         int i = 0;
         while (ctx.NAME(i) != null) {
@@ -227,18 +223,12 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
                 fault.addErrorPinNumberAlreadyUsed(outputPinNumber, ctx.getStart().getLine());
             }
 
-            if (mooreBuilder.getInputPinOfName(outputPinName) != null) {
-                fault.addErrorDuplicatePin(outputPinName, line);
-            } else if (mooreBuilder.getOutputPinOfName(outputPinName) != null) {
-                if (mooreBuilder.getOutputPinOfName(outputPinName).getName()
-                        .equals(outputPinName)) {
+            if (mooreBuilder.getInputPinOfName(outputPinName) != null) fault.addErrorDuplicatePin(outputPinName, line);
+            else if (mooreBuilder.getOutputPinOfName(outputPinName) != null) {
+                if (mooreBuilder.getOutputPinOfName(outputPinName).getName().equals(outputPinName)) {
                     fault.addErrorDuplicatePin(outputPinName, ctx.getStart().getLine());
-                } else {
-                    fault.addErrorUndeclaredOutputPin(outputPinName, line);
-                }
-            } else {
-                mooreBuilder.addOutputPin(Pin.ofValue(outputPinName, outputPinNumber));
-            }
+                } else fault.addErrorUndeclaredOutputPin(outputPinName, line);
+            } else mooreBuilder.addOutputPin(Pin.ofValue(outputPinName, outputPinNumber));
 
             ++i;
         }
@@ -255,8 +245,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
 
             if (!mooreBuilder.hasState(state)) {
                 fault.addErrorUndeclaredState(state, line);
-            }
-            else {
+            } else {
                 if (mooreBuilder.hasOutput(state)) {
                     fault.addErrorOutputAlreadyDefined(state, line);
                 } else {
