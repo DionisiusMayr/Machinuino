@@ -491,15 +491,12 @@ public class MooreMachine {
 
         private Predicate<Transition> equivalentTransition(Transition transition) {
             return onBuilder -> {
-                Set<Pin> onBuilderPins = onBuilder.getInput().stream()
-                        .map(BoolPin::getPin)
-                        .collect(Collectors.toSet());
-                Set<Pin> transitionPins = transition.getInput().stream()
-                        .map(BoolPin::getPin)
-                        .collect(Collectors.toSet());
+                Set<BoolPin> onBuilderPins = onBuilder.getInput();
+                Set<BoolPin> transitionPins = transition.getInput();
                 return onBuilder.getPreviousState().equals(transition.getPreviousState())
                         && onBuilder.getNextState().equals(transition.getNextState())
-                        && onBuilderPins.equals(transitionPins);
+                        && (onBuilderPins.containsAll(transitionPins) ||
+                        transitionPins.containsAll(onBuilderPins));
             };
         }
 

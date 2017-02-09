@@ -84,4 +84,10 @@ public class Utils {
                     + (shouldContain ? "not " : "") + "on " + collectionName + " " + collection);
         }
     }
+
+    public static void verifyPositive(String tag, String name, int number) {
+        if (number < 0) {
+            throw new IllegalArgumentException(tag + ": Negative " + name + "!");
+        }
+    }
 }

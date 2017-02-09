@@ -10,6 +10,7 @@ class SyntacticAnalyzer {
     private SyntacticAnalyzer() {
     }
 
+    // TODO use the class Fault
     /**
      * Analyze a file on {@code fileLocation} and return the syntactic error it contains, if any.
      *

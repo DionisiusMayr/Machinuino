@@ -1,0 +1,19 @@
+moore M1 {
+    states {a1, a2}
+
+    input {
+        pins {
+            clock:  10,
+            p1: 11,
+            p2: 12
+        }
+
+        transition {}
+    }
+
+    output {
+        pins {}
+
+        function {}
+    }
+}
