@@ -48,30 +48,46 @@ public class Main {
                 if (fault.getErrors().isEmpty()) {
                     System.out.println(" No Semantic Errors.");
                     if (fault.getWarnings().isEmpty()) {
-                        System.out.println(" No Semantic Warnings.");
+                        System.out.println(" No Semantic Warnings.\n");
                     } else {
                         System.out.println("Semantic Warnings:");
                         System.out.println(fault.getWarnings());
                     }
 
-                    MooreMachine mm = semantic.buildMachine();
+                    MooreMachine machine = semantic.buildMachine();
 
                     System.out.println("Generating code.");
 
                     CodeGenerator codeGen = CodeGenerator.getInstance();
-
+                    String inoFile = file.substring(0,
+                            file.length() - mooreExtension.length()) + ".ino";
                     try {
-                        PrintWriter pwIno = new PrintWriter(new FileWriter(file.substring(0, file.length() -
-                                mooreExtension.length()) + ".ino"));
-                        pwIno.print(codeGen.generateCode(mm));
+                        PrintWriter pwIno = new PrintWriter(new FileWriter(inoFile));
+                        pwIno.print(codeGen.generateCode(machine));
                         pwIno.flush();
                         pwIno.close();
                     } catch (IOException e) {
-                        System.out.println("File " + file + " not found. Exitting.");
+                        System.out.println("Error creating file " + inoFile + "\nExitting.");
                         System.exit(1);
                     }
 
-                    System.out.println("Code generated successfully!");
+                    System.out.println("Code generated successfully!\n");
+                    System.out.println("Generating graphviz file.");
+
+                    DotGenerator graphvizGenerator = DotGenerator.getInstance();
+                    String gvFile = file.substring(0,
+                            file.length() - mooreExtension.length()) + ".gv";
+                    try {
+                        PrintWriter pwGv = new PrintWriter(new FileWriter(gvFile));
+                        pwGv.print(graphvizGenerator.generateImage(machine));
+                        pwGv.flush();
+                        pwGv.close();
+                    } catch (IOException e) {
+                        System.out.println("Error creating file " + gvFile + "\nExitting.");
+                        System.exit(1);
+                    }
+
+                    System.out.println("Graphviz file generated successfully!");
                 } else {
                     System.out.println("ERRORS:");
                     System.out.println(fault.getErrors());

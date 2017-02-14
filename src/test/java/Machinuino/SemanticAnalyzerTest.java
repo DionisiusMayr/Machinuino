@@ -141,4 +141,10 @@ public class SemanticAnalyzerTest {
         String file = pathSemanticErrors + "duplicateInputInExp.moore";
         compareExpectedFaults(file, "18: Input Pin \"button\" already used in expression." + LS, "");
     }
+
+    @Test
+    public void duplicateTransition() {
+        String file = pathSemanticErrors + "duplicateTransition.moore";
+        compareExpectedFaults(file, "19: Transition coming from state \"q0\" already defined." + LS,  "");
+    }
 }

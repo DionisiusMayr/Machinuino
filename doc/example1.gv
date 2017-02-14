@@ -1,0 +1,16 @@
+digraph example1 {
+    node [shape = circle];
+    rankdir = "LR";
+
+    x [style = invis]
+    x -> "q0 \\ \n!led1, \n!led2";
+
+    "q3 \\ \nled1, \nled2" -> "q0 \\ \n!led1, \n!led2"[ label = "inputButton"]
+    "q0 \\ \n!led1, \n!led2" -> "q3 \\ \nled1, \nled2"[ label = "!inputButton"]
+    "q1 \\ \n!led1, \nled2" -> "q0 \\ \n!led1, \n!led2"[ label = "!inputButton"]
+    "q2 \\ \n!led2, \nled1" -> "q1 \\ \n!led1, \nled2"[ label = "!inputButton"]
+    "q3 \\ \nled1, \nled2" -> "q2 \\ \n!led2, \nled1"[ label = "!inputButton"]
+    "q0 \\ \n!led1, \n!led2" -> "q1 \\ \n!led1, \nled2"[ label = "inputButton"]
+    "q1 \\ \n!led1, \nled2" -> "q2 \\ \n!led2, \nled1"[ label = "inputButton"]
+    "q2 \\ \n!led2, \nled1" -> "q3 \\ \nled1, \nled2"[ label = "inputButton"]
+}

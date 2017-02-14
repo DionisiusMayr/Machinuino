@@ -25,13 +25,8 @@ Develop a representation and description language for Moore Machines and a Compi
 - [X] Test and validate the semantic analyzer;
 - [X] Generate code for the target platforms.
 
-## Extras
-- [ ] Design a logo;
-- [ ] Update/finalize the README.md to share this repository;
-- [ ] Make a visualization mechanism for the Moore Machine states;
-- [ ] Check for inaccessible states;
-- [ ] Improve line of fault report;
-- [ ] Improve code coverage.
+## Wiki
+There is a wiki explaining the compiler usage and details about the grammar [here](https://github.com/DionisiusMayr/Machinuino/wiki).
 
 ## Developers
 - [Caio Herrera](https://github.com/caioherrera)   - 595004
