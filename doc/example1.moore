@@ -1,0 +1,52 @@
+moore exemplo1 {
+	states {
+		q0, q1, q2, q3
+	}
+
+	input {
+		pins {
+			clock: 5,
+			inputButton: 6
+		}
+
+		transition {
+			q0 {
+				inputButton -> q1,
+				!inputButton -> q3
+			}
+
+			q1 {
+				inputButton -> q2,
+				!inputButton -> q0
+			}
+
+			q2 {
+				inputButton -> q3,
+				!inputButton -> q1
+			}
+
+			q3 {
+				inputButton -> q0,
+				!inputButton -> q2
+			}
+		}
+
+	}
+
+	output {
+		pins {
+			led1: 7,
+			led2: 8
+		}
+
+		function {
+			q0 { !led1, !led2 }
+
+			q1 { !led1, led2 }
+
+			q2 { led1, !led2 }
+
+			q3 { led1, led2 }
+		}
+	}
+}
