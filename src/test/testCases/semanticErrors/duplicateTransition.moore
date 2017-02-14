@@ -15,7 +15,7 @@ moore M1 {
         /* The outer "q0" is the current state, the boolean expression is the symbol of the language and the state after the arrow is the next state. */
         transition {
             q0 {
-                switch -> q1,
+                button -> q0,
                 button  & switch  -> q1,
                 button  & !switch -> q0,
                 !button & switch  -> q2,

@@ -79,6 +79,7 @@ public class FaultTest {
     public void emptySections() {
         Fault fault = Fault.getInstance();
         fault.addWarningEmptySection("States", 11);
-        Assert.assertEquals("Fault {errors=[], warnings=[11: Empty \"States\" section\n]}", fault.toString());
+        Assert.assertEquals("Fault {errors=[], warnings=[11: Empty \"States\" section" + System.lineSeparator() +
+                "]}", fault.toString());
     }
 }

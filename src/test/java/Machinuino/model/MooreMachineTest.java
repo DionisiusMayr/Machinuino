@@ -607,47 +607,47 @@ public class MooreMachineTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void builderHasEquivalentNullTransitionShouldThrowException() {
+    public void builderNullTransitionCausesNonDeterminismShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
-        builder.hasEquivalentTransition(null);
+        builder.transitionCausesNonDeterminism(null);
     }
 
     @Test(expected = NullPointerException.class)
-    public void builderHasEquivalentTransitionNullPinShouldThrowException() {
+    public void builderTransitionCausesNonDeterminismNullPinShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(null);
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
-        builder.hasEquivalentTransition(transition);
+        builder.transitionCausesNonDeterminism(transition);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void builderHasEquivalentTransitionWithDuplicatePinShouldThrowException() {
+    public void builderTransitionCausesNonDeterminismWithDuplicatePinShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("button", 2), true));
         boolPins.add(BoolPin.ofValue(Pin.ofValue("button", 2), false));
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
-        builder.hasEquivalentTransition(transition);
+        builder.transitionCausesNonDeterminism(transition);
     }
 
     @Test
-    public void builderHasEquivalentTransitionDifferentTransitions() {
+    public void builderTransitionCausesNonDeterminismDifferentTransitions() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), false));
         boolPins.add(BoolPin.ofValue(Pin.ofValue("button", 2), false));
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
-        Assert.assertFalse(builder.hasEquivalentTransition(transition));
+        Assert.assertFalse(builder.transitionCausesNonDeterminism(transition));
     }
 
     @Test
-    public void builderHasEquivalentTransition() {
+    public void builderTransitionCausesNonDeterminism() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), true));
-        Transition transition = Transition.ofValue("q0", "q1", boolPins);
-        Assert.assertTrue(builder.hasEquivalentTransition(transition));
+        Transition transition = Transition.ofValue("q0", "q2", boolPins);
+        Assert.assertTrue(builder.transitionCausesNonDeterminism(transition));
     }
 
     @Test(expected = NullPointerException.class)
@@ -696,7 +696,7 @@ public class MooreMachineTest {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), true));
-        builder.addTransition(Transition.ofValue("q0", "q1", boolPins));
+        builder.addTransition(Transition.ofValue("q0", "q2", boolPins));
     }
 
     @Test
@@ -712,41 +712,41 @@ public class MooreMachineTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void builderRemoveNullEquivalentTransitionShouldThrowException() {
+    public void builderRemoveNullTransitionShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
-        builder.removeEquivalentTransition(null);
+        builder.removeTransition(null);
     }
 
     @Test(expected = NullPointerException.class)
-    public void builderRemoveEquivalentTransitionNullPinsShouldThrowException() {
+    public void builderRemoveTransitionNullPinsShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
-        builder.removeEquivalentTransition(Transition.ofValue("q0", "q1", null));
+        builder.removeTransition(Transition.ofValue("q0", "q1", null));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void builderRemoveEquivalentTransitionDuplicatePinsShouldThrowException() {
+    public void builderRemoveTransitionDuplicatePinsShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), true));
         boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), false));
-        builder.removeEquivalentTransition(Transition.ofValue("q0", "q1", boolPins));
+        builder.removeTransition(Transition.ofValue("q0", "q1", boolPins));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void builderRemoveEquivalentTransitionNotOnTheBuilderShouldThrowException() {
+    public void builderRemoveTransitionNotOnTheBuilderShouldThrowException() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("button", 2), false));
-        builder.removeEquivalentTransition(Transition.ofValue("q0", "q1", boolPins));
+        builder.removeTransition(Transition.ofValue("q0", "q1", boolPins));
     }
 
     @Test
-    public void builderRemoveEquivalentTransition() {
+    public void builderRemoveTransition() {
         MooreMachine.Builder builder = new MooreMachine.Builder(defaultBuilder);
         Set<BoolPin> boolPins = new HashSet<>();
         boolPins.add(BoolPin.ofValue(Pin.ofValue("clock", 1), true));
         Transition transition = Transition.ofValue("q0", "q1", boolPins);
-        builder.removeEquivalentTransition(transition);
+        builder.removeTransition(transition);
         MooreMachine machine = builder.build();
         Assert.assertFalse(machine.getTransitions().collect(Collectors.toSet())
                 .contains(transition));

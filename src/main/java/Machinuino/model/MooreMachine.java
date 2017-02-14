@@ -412,19 +412,19 @@ public class MooreMachine {
          * passed, false otherwise
          * @throws IllegalArgumentException if transition has the same pin with two values
          */
-        public boolean hasEquivalentTransition(Transition transition) {
-            Utils.verifyNullity(NAME_TAG + "#hasEquivalentTransition", "transition", transition);
-            Utils.verifyCollectionNullity(NAME_TAG + "#hasEquivalentTransition",
+        public boolean transitionCausesNonDeterminism(Transition transition) {
+            Utils.verifyNullity(NAME_TAG + "#transitionCausesNonDeterminism", "transition", transition);
+            Utils.verifyCollectionNullity(NAME_TAG + "#transitionCausesNonDeterminism",
                     "transitionPins", transition.getInput());
             Set<BoolPin> transitionBoolPins = transition.getInput();
             Set<Pin> pins = transitionBoolPins.stream()
                     .map(BoolPin::getPin)
                     .collect(Collectors.toSet());
             if (transitionBoolPins.size() != pins.size()) {
-                throw new IllegalArgumentException(NAME_TAG + "#hasEquivalentTransition: " +
+                throw new IllegalArgumentException(NAME_TAG + "#transitionCausesNonDeterminism: " +
                         "there is a pin with two values on " + transition);
             }
-            return transitions.stream().anyMatch(equivalentTransition(transition));
+            return transitions.stream().anyMatch(causesNonDeterminism(transition));
         }
 
         /**
@@ -434,7 +434,7 @@ public class MooreMachine {
          * @return this Builder
          * @throws IllegalArgumentException if the pins of the transition have duplicate values or
          * the pins are not on this builder or trying to add a equivalent transition to this builder
-         * @see #hasEquivalentTransition
+         * @see #transitionCausesNonDeterminism
          */
         public Builder addTransition(Transition transition) {
             Utils.verifyNullity(NAME_TAG + "#addTransition", "transition", transition);
@@ -458,7 +458,7 @@ public class MooreMachine {
                         "pin of a transition", pin,
                         "inputPins of this builder", inputPins, true);
             }
-            if (hasEquivalentTransition(transition)) {
+            if (transitionCausesNonDeterminism(transition)) {
                 throw new IllegalArgumentException(NAME_TAG + "#addTransition: " +
                         "there is already a transition on the same pins as " + transition +
                         "on this builder " + transitions);
@@ -474,27 +474,26 @@ public class MooreMachine {
          * @return this builder
          * @throws IllegalArgumentException if the transition passed is not equivalent to any
          * transition on this machine
-         * @see #hasEquivalentTransition
+         * @see #transitionCausesNonDeterminism
          */
-        public Builder removeEquivalentTransition(Transition transition) {
+        public Builder removeTransition(Transition transition) {
             Utils.verifyNullity(NAME_TAG + "#addTransition", "transition", transition);
             Utils.verifyCollectionNullity(NAME_TAG + "#addTransition", "transitionPins",
                     transition.getInput());
-            if (!hasEquivalentTransition(transition)) {
-                throw new IllegalArgumentException(NAME_TAG + "#removeEquivalentTransition: " +
-                        "there is no transition on the same pins as " + transition +
-                        "on this builder " + transitions);
+            if (!transitions.contains(transition)) {
+                throw new IllegalArgumentException(NAME_TAG + "#removeTransition: " +
+                        "transition" + transition + " is not on this builder " + transitions);
             }
-            transitions.removeIf(equivalentTransition(transition));
+            transitions.removeIf(trans -> trans.equals(transition));
             return this;
         }
 
-        private Predicate<Transition> equivalentTransition(Transition transition) {
+        private Predicate<Transition> causesNonDeterminism(Transition transition) {
             return onBuilder -> {
                 Set<BoolPin> onBuilderPins = onBuilder.getInput();
                 Set<BoolPin> transitionPins = transition.getInput();
                 return onBuilder.getPreviousState().equals(transition.getPreviousState())
-                        && onBuilder.getNextState().equals(transition.getNextState())
+                        && !onBuilder.getNextState().equals(transition.getNextState())
                         && (onBuilderPins.containsAll(transitionPins) ||
                         transitionPins.containsAll(onBuilderPins));
             };

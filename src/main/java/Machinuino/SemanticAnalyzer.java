@@ -152,10 +152,6 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
         return "";  // Note: already visited the children rules.
     }
 
-    @Override
-    public Object visitTransBlock(MachinuinoParser.TransBlockContext ctx) {
-        return super.visitTransBlock(ctx);
-    }
 
     @Override
     public Object visitPartialTrans(MachinuinoParser.PartialTransContext ctx) {
@@ -164,8 +160,13 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
             if (!mooreBuilder.hasState(targetState)) {
                 fault.addErrorUndeclaredState(targetState, ctx.getStart().getLine());
             } else if (mooreBuilder.hasState(previousState)) {
-                Transition trans = Transition.ofValue(previousState, targetState, visitLogicExp(ctx.logicExp()));
-                if (mooreBuilder.hasEquivalentTransition(trans)) {
+                Set<BoolPin> boolPins = visitLogicExp(ctx.logicExp());
+                Transition trans;
+
+                if (boolPins != null) trans = Transition.ofValue(previousState, targetState, boolPins);
+                else return "";
+
+                if (mooreBuilder.transitionCausesNonDeterminism(trans)) {
                     fault.addErrorDuplicateTransitionFromState(previousState, ctx.getStart().getLine());
                 } else {
                     mooreBuilder.addTransition(trans);
@@ -180,7 +181,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
     @Override
     public Set<BoolPin> visitLogicExp(MachinuinoParser.LogicExpContext ctx) {
         Set<String> inputsUsed = new HashSet<>();
-        Set<BoolPin> sbp = new HashSet<>();
+        Set<BoolPin> boolPins = new HashSet<>();
 
         int i = 0;
         while (ctx.extName(i) != null) {
@@ -193,12 +194,14 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
             // TODO test both conditions
             if (pin == null || !mooreBuilder.hasInputPin(pin)) {
                 fault.addErrorUndeclaredInputPin(pinName, line);
+                boolPins = null;
+                break;
             } else {
                 if (inputsUsed.contains(pinName)) {
                     fault.addErrorInputAlreadyInExp(pinName, ctx.getStart().getLine());
                 } else {
                     inputsUsed.add(pinName);
-                    sbp.add(BoolPin.ofValue(mooreBuilder.getInputPinOfName(pinName), pinValue));
+                    boolPins.add(BoolPin.ofValue(mooreBuilder.getInputPinOfName(pinName), pinValue));
                 }
             }
 
@@ -206,7 +209,7 @@ public class SemanticAnalyzer extends MachinuinoBaseVisitor {
         }
 
         super.visitLogicExp(ctx);
-        return sbp;
+        return boolPins;
     }
 
     @Override

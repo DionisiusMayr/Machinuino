@@ -30,7 +30,7 @@ public class DotGenerator {
 
     private String outputToGv(Output output) {
         return "\"" + output.getState() + " \\\\ \\n" + output.getBoolPins().stream()
-                .map(s -> boolPinToGv(s)).collect(Collectors.joining(", \\n")) + "\"";
+                .map(this::boolPinToGv).collect(Collectors.joining(", \\n")) + "\"";
     }
 
     private String boolPinToGv(BoolPin boolPin) {
@@ -38,7 +38,7 @@ public class DotGenerator {
     }
 
     private String transitionToGv(Transition transition) {
-        return "\"" + transition.getInput().stream().map(s -> boolPinToGv(s))
+        return "\"" + transition.getInput().stream().map(this::boolPinToGv)
                 .collect(Collectors.joining(", ")) + "\"";
     }
 
