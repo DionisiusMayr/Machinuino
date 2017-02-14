@@ -86,7 +86,7 @@ public class Fault {
         Utils.verifyNullity(NAME_TAG + "#addErrorDuplicateTransitionFromState", "State", state);
         Utils.verifyPositive(NAME_TAG + "#addErrorDuplicateTransitionFromState", "line", line);
 
-        this.addError(line + ": Transition comming from state \"" + state + "\" already defined." +
+        this.addError(line + ": Transition coming from state \"" + state + "\" already defined." +
                 System.lineSeparator());
     }
 

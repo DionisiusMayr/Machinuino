@@ -60,7 +60,7 @@ public class Main {
 
                     CodeGenerator codeGen = CodeGenerator.getInstance();
                     String inoFile = file.substring(0,
-                            file.length() - mooreExtension.length()) + ".ino";;
+                            file.length() - mooreExtension.length()) + ".ino";
                     try {
                         PrintWriter pwIno = new PrintWriter(new FileWriter(inoFile));
                         pwIno.print(codeGen.generateCode(machine));
@@ -76,7 +76,7 @@ public class Main {
 
                     DotGenerator graphvizGenerator = DotGenerator.getInstance();
                     String gvFile = file.substring(0,
-                            file.length() - mooreExtension.length()) + ".gv";;
+                            file.length() - mooreExtension.length()) + ".gv";
                     try {
                         PrintWriter pwGv = new PrintWriter(new FileWriter(gvFile));
                         pwGv.print(graphvizGenerator.generateImage(machine));
