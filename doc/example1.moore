@@ -1,4 +1,4 @@
-moore exemplo1 {
+moore example1 {
 	states {
 		q0, q1, q2, q3
 	}

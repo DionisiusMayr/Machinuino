@@ -1,4 +1,4 @@
-digraph exemplo1 {
+digraph example1 {
     node [shape = circle];
     rankdir = "LR";
 
