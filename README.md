@@ -28,6 +28,9 @@ Develop a representation and description language for Moore Machines and a Compi
 ## Wiki
 There is a wiki explaining the compiler usage and details about the grammar [here](https://github.com/DionisiusMayr/Machinuino/wiki).
 
+## Javadoc
+On the folder [javadoc](https://github.com/DionisiusMayr/Machinuino/tree/master/javadoc) it is possible to find documentation about the main classes of the project.
+
 ## Developers
 - [Caio Herrera](https://github.com/caioherrera)   - 595004
 - [Daniel Willian](https://github.com/OksShammy) - 595144
